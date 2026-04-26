@@ -178,7 +178,7 @@
       const eloEl = document.getElementById(`elo${side}`);
 
       // Try real image first
-      const imgSrc = `images/${meta.year}.jpg`;
+      const imgSrc = `${meta.year}.jpg`;
       img.src = imgSrc;
       img.alt = `${meta.year} Topps card design`;
       img.onload = () => {
