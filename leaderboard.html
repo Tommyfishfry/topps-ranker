@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rankings — Topps Ranker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball"></div>
+    <p>Loading rankings…</p>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="index.html" class="logo">Topps <span>Ranker</span></a>
+    <nav>
+      <a href="index.html">Vote</a>
+      <a href="leaderboard.html" class="active">Rankings</a>
+    </nav>
+  </header>
+
+  <!-- Vote banner -->
+  <div class="vote-banner">
+    Community-powered Elo rankings — updated after every vote
+  </div>
+
+  <!-- Main -->
+  <main class="page">
+    <div class="leaderboard-header">
+      <h1>All-Time Topps Rankings</h1>
+      <p id="rankingSubhead">Loading…</p>
+    </div>
+
+    <div id="tableContainer">
+      <!-- Table injected by JS -->
+    </div>
+  </main>
+
+  <script type="module">
+    import { getAllRankings, getTotalVotes } from './app.js';
+
+    // Color map keyed by year — must match cards.js
+    const YEAR_COLORS = {
+      1952:"#c8102e",1953:"#1a3a6b",1954:"#2d6a2d",1955:"#8b4513",1956:"#4a4a8a",
+      1957:"#1a1a2e",1958:"#d4a017",1959:"#c8102e",1960:"#2d6a2d",1961:"#1a3a6b",
+      1962:"#8b5e3c",1963:"#c8102e",1964:"#1a1a1a",1965:"#2d6a2d",1966:"#4a4a8a",
+      1967:"#8b4513",1968:"#5c4033",1969:"#c8102e",1970:"#1a3a6b",1971:"#111111",
+      1972:"#e07b00",1973:"#2d6a2d",1974:"#1a3a6b",1975:"#ff4136",1976:"#003087",
+      1977:"#c8102e",1978:"#d4a017",1979:"#ff6b35",1980:"#4a4a8a",1981:"#1a1a1a",
+      1982:"#2d6a2d",1983:"#c8102e",1984:"#111111",1985:"#1a3a6b",1986:"#1a1a1a",
+      1987:"#8b5e3c",1988:"#1a3a6b",1989:"#4a4a4a",1990:"#2d6a2d",1991:"#d4a017",
+      1992:"#c8a400",1993:"#c8102e",1994:"#111111",1995:"#4a4a8a",1996:"#1a1a1a",
+      1997:"#8a8a8a",1998:"#1a3a6b",1999:"#4a4a4a",2000:"#d4a017",2001:"#c8102e",
+      2002:"#2d6a2d",2003:"#1a1a1a",2004:"#111111",2005:"#1a3a6b",2006:"#4a4a4a",
+      2007:"#c8102e",2008:"#2d6a2d",2009:"#1a1a1a",2010:"#1a3a6b",2011:"#d4a017",
+      2012:"#4a4a8a",2013:"#c8102e",2014:"#1a1a1a",2015:"#2d6a2d",2016:"#8a8a8a",
+      2017:"#4a4a8a",2018:"#1a3a6b",2019:"#c8102e",2020:"#003087",2021:"#8a8a8a",
+      2022:"#1a1a1a",2023:"#c8102e",2024:"#1a3a6b"
+    };
+
+    async function render() {
+      const [rankings, totalVotes] = await Promise.all([
+        getAllRankings(),
+        getTotalVotes(),
+      ]);
+
+      document.getElementById('loading').classList.add('hidden');
+
+      document.getElementById('rankingSubhead').textContent =
+        `Based on ${totalVotes.toLocaleString()} votes — ${rankings.length} years ranked`;
+
+      if (rankings.length === 0) {
+        document.getElementById('tableContainer').innerHTML =
+          '<p class="unranked-msg">No votes yet — be the first to vote!</p>';
+        return;
+      }
+
+      const rows = rankings.map((card, i) => {
+        const rank = i + 1;
+        const rankClass = rank <= 3 ? 'rank top3' : 'rank';
+        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        const color = YEAR_COLORS[card.year] || '#555';
+        const winPct = card.comparisons > 0
+          ? Math.round((card.wins / card.comparisons) * 100)
+          : '—';
+        return `
+          <tr>
+            <td class="${rankClass}">${rankEmoji}</td>
+            <td class="year-cell">
+              <span class="year-swatch" style="background:${color}"></span>
+              ${card.year} Topps
+            </td>
+            <td class="elo-cell">${card.elo}</td>
+            <td class="record-cell">${card.wins}–${card.losses} (${winPct}%)</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('tableContainer').innerHTML = `
+        <table class="rankings-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Design Year</th>
+              <th class="right">Elo Rating</th>
+              <th class="right">Win–Loss</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    render();
+  </script>
+
+</body>
+</html>
