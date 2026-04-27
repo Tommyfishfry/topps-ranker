@@ -76,6 +76,8 @@ const TOPPS_CARDS = [
   { year: 2022, name: "2022 Topps", description: "Team color inner frame, bold typography.", color: "#1a1a1a" },
   { year: 2023, name: "2023 Topps", description: "Clean modern design, bold name treatment.", color: "#c8102e" },
   { year: 2024, name: "2024 Topps", description: "Contemporary full bleed with team color bar.", color: "#1a3a6b" },
+  { year: 2025, name: "2025 Topps", description: "Modern minimal design with bold typography.", color: "#c8102e" },
+  { year: 2026, name: "2026 Topps", description: "Latest Topps flagship design.", color: "#2d6a2d" },
 ];
 
 // Default Elo rating for all cards
