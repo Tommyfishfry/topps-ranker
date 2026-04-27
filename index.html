@@ -173,7 +173,6 @@
       const yearBig = document.getElementById(`yearBig${side}`);
       const yearLabel = document.getElementById(`yearLabel${side}`);
       const desc = document.getElementById(`desc${side}`);
-      const eloEl = document.getElementById(`elo${side}`);
 
       // Try real image first
       const imgSrc = `${meta.year}.jpg`;
@@ -192,7 +191,6 @@
 
       yearLabel.textContent = `${meta.year} Topps`;
       desc.textContent = meta.description;
-      eloEl.textContent = `Elo: ${data.elo}`;
 
       const card = document.getElementById(`card${side}`);
       card.classList.remove('winner', 'loser');
