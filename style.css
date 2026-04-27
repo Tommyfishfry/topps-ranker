@@ -1,23 +1,24 @@
 /* style.css — Topps Ranker */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;500&display=swap');
 
 /* ─── Variables ──────────────────────────────────────────────────────────── */
 :root {
-  --cream: #f5f0e8;
-  --cream-dark: #ede7d9;
-  --ink: #1a1510;
-  --ink-light: #3d3428;
-  --red: #c8102e;
-  --red-dark: #9e0c24;
-  --gold: #c8a400;
-  --gold-light: #e8c840;
-  --blue: #1a3a6b;
-  --border: #c4b89a;
+  --cream: #fdf6e3;
+  --cream-dark: #f5e6c8;
+  --ink: #1a1a2e;
+  --ink-light: #2d2d44;
+  --red: #e63946;
+  --red-dark: #c1121f;
+  --gold: #f4a261;
+  --gold-light: #ffb703;
+  --blue: #023e8a;
+  --teal: #0096c7;
+  --border: #f4a261;
   --card-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
-  --font-display: 'Playfair Display', serif;
-  --font-heading: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
+  --font-display: 'Alfa Slab One', serif;
+  --font-heading: 'Oswald', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
 }
 
 /* ─── Reset & Base ───────────────────────────────────────────────────────── */
@@ -93,20 +94,20 @@ body {
 
 /* ─── Page Layout ────────────────────────────────────────────────────────── */
 .page {
-  max-width: 1100px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 1.5rem 1.5rem;
 }
 
 /* ─── Vote Page Headline ─────────────────────────────────────────────────── */
 .vote-headline {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
 }
 
 .vote-headline h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.3rem, 3vw, 2rem);
   line-height: 1.1;
   color: var(--ink);
 }
@@ -122,13 +123,31 @@ body {
   opacity: 0.7;
 }
 
+.site-blurb {
+  margin-top: 0.4rem !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ink-light) !important;
+  opacity: 0.6 !important;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
 /* ─── VS Layout ──────────────────────────────────────────────────────────── */
 .matchup {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   gap: 1.5rem;
   align-items: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .vs-divider {
@@ -309,20 +328,24 @@ body {
 .leaderboard-header {
   text-align: center;
   margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 4px solid var(--ink);
 }
 
 .leaderboard-header h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
   color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .leaderboard-header p {
   margin-top: 0.6rem;
   font-family: var(--font-heading);
   font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 400;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-light);
   opacity: 0.6;

@@ -31,7 +31,7 @@
   <!-- Main -->
   <main class="page">
     <div class="leaderboard-header">
-      <h1>All-Time Topps Rankings</h1>
+      <h1>The Definitive Rankings</h1>
       <p id="rankingSubhead">Loading…</p>
     </div>
 
@@ -71,7 +71,7 @@
       document.getElementById('loading').classList.add('hidden');
 
       document.getElementById('rankingSubhead').textContent =
-        `Based on ${totalVotes.toLocaleString()} votes — ${rankings.length} years ranked`;
+        `${totalVotes.toLocaleString()} votes cast — ${rankings.length} Topps designs ranked`;
 
       if (rankings.length === 0) {
         document.getElementById('tableContainer').innerHTML =
