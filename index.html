@@ -19,7 +19,7 @@
     <a href="index.html" class="logo">Topps <span>Ranker</span></a>
     <nav>
       <a href="index.html" class="active">Vote</a>
-      <a href="leaderboard.html">Rankings</a>
+      <a href="leaderboard.html" class="rankings-tab">📊 Rankings</a>
     </nav>
   </header>
 
@@ -32,7 +32,7 @@
   <main class="page">
     <div class="vote-headline">
       <h1>Which Topps design is better?</h1>
-      <p class="site-blurb">Every Topps baseball card set from 1952–2024, ranked head-to-head by you. Click the design you prefer.</p>
+      <p class="site-blurb">Every Topps baseball card set from 1952–2026, ranked head-to-head by you. Click the design you prefer.</p>
     </div>
 
     <div class="matchup" id="matchup">
@@ -169,21 +169,58 @@
       return [arr[a], arr[b]];
     }
 
-    function setCardUI(side, meta, data) {
+    // Years with horizontal card designs
+    const HORIZONTAL_YEARS = [1955, 1956, 1960];
+
+    // Pick a random image for a year — tries a/b/c variants first, falls back to plain year.jpg
+    function pickImage(year) {
+      const variants = ['a', 'b', 'c', 'd'];
+      // Randomly decide whether to try variants (only matters if they exist)
+      const shuffled = variants.sort(() => Math.random() - 0.5);
+      return new Promise((resolve) => {
+        let i = 0;
+        function tryNext() {
+          if (i >= shuffled.length) {
+            resolve(`${year}.jpg`); // final fallback
+            return;
+          }
+          const src = `${year}${shuffled[i]}.jpg`;
+          const test = new Image();
+          test.onload = () => resolve(src);
+          test.onerror = () => { i++; tryNext(); };
+          test.src = src;
+        }
+        // First try plain year.jpg and a variant simultaneously, use whichever loads
+        // Actually: just try variants in order, fall back to plain
+        const plain = new Image();
+        const variantSrc = `${year}a.jpg`;
+        const variant = new Image();
+        let resolved = false;
+        variant.onload = () => { if (!resolved) { resolved = true; resolve(variantSrc); } };
+        variant.onerror = () => { if (!resolved) { resolved = true; resolve(`${year}.jpg`); } };
+        variant.src = variantSrc;
+      });
+    }
+
+    function setCardUI(side, meta, imgSrc) {
       const img = document.getElementById(`img${side}`);
       const placeholder = document.getElementById(`placeholder${side}`);
       const yearBig = document.getElementById(`yearBig${side}`);
       const yearLabel = document.getElementById(`yearLabel${side}`);
       const desc = document.getElementById(`desc${side}`);
+      const cardImage = img.closest('.card-image');
 
-      // Try real image first
-      const imgSrc = `${meta.year}.jpg`;
+      // Set landscape frame for horizontal years
+      if (HORIZONTAL_YEARS.includes(meta.year)) {
+        cardImage.style.aspectRatio = '3.5 / 2.5';
+      } else {
+        cardImage.style.aspectRatio = '2.5 / 3.5';
+      }
+
       img.src = imgSrc;
       img.alt = `${meta.year} Topps card design`;
-      img.onload = () => {
-        img.style.display = 'block';
-        placeholder.style.display = 'none';
-      };
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
       img.onerror = () => {
         img.style.display = 'none';
         placeholder.style.display = 'flex';
@@ -208,8 +245,13 @@
         getCardData(cardBMeta.year),
       ]);
 
-      setCardUI('A', cardAMeta, cardAData);
-      setCardUI('B', cardBMeta, cardBData);
+      const [imgA, imgB] = await Promise.all([
+        pickImage(cardAMeta.year),
+        pickImage(cardBMeta.year),
+      ]);
+
+      setCardUI('A', cardAMeta, imgA);
+      setCardUI('B', cardBMeta, imgB);
 
       document.getElementById('loading').classList.add('hidden');
     }

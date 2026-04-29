@@ -77,6 +77,15 @@ body {
 .site-header nav a:hover,
 .site-header nav a.active { opacity: 1; color: var(--gold-light); }
 
+.site-header nav a.rankings-tab {
+  background: var(--gold-light);
+  color: var(--ink) !important;
+  opacity: 1 !important;
+  padding: 0.3rem 0.8rem;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
 /* ─── Subheader Banner ───────────────────────────────────────────────────── */
 .vote-banner {
   background: var(--red);
@@ -212,7 +221,7 @@ body {
 .card-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transition: transform 0.3s ease;
 }
