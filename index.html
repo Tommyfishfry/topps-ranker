@@ -71,7 +71,11 @@
     </div>
 
     <button class="btn-next" id="btnSkip">Skip this matchup →</button>
-    <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+    <div class="vote-footer">
+      <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+      <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+    </div>
   </main>
 
   <script type="module">
@@ -160,6 +164,7 @@
     // ── State ───────────────────────────────────────────────────────────────
     let cardAData, cardBData, cardAMeta, cardBMeta;
     let voting = false;
+    let sessionVotes = 0;
 
     // ── Helpers ─────────────────────────────────────────────────────────────
     function pickTwo(arr) {
@@ -268,6 +273,22 @@
       const losMeta = winner === 'A' ? cardBMeta : cardAMeta;
 
       await recordVote(winMeta.year, losMeta.year);
+
+      // Update streak
+      sessionVotes++;
+      const streakEl = document.getElementById('voteStreak');
+      const streakCount = document.getElementById('streakCount');
+      const confirmed = document.getElementById('voteConfirmed');
+      streakCount.textContent = sessionVotes;
+      streakEl.style.display = 'block';
+
+      // Flash confirmation
+      confirmed.style.display = 'block';
+      confirmed.classList.add('flash');
+      setTimeout(() => {
+        confirmed.style.display = 'none';
+        confirmed.classList.remove('flash');
+      }, 800);
 
       // Brief pause to show result, then next matchup
       setTimeout(() => loadMatchup(), 900);

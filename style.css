@@ -322,15 +322,50 @@ body {
 }
 
 /* ─── Vote count strip ───────────────────────────────────────────────────── */
-.vote-count {
+.vote-footer {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+  min-height: 3rem;
+}
+
+.vote-count {
   font-family: var(--font-heading);
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-light);
   opacity: 0.55;
+}
+
+.vote-streak {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-top: 0.4rem;
+}
+
+.vote-confirmed {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-top: 0.3rem;
+}
+
+.vote-confirmed.flash {
+  animation: flashIn 0.8s ease;
+}
+
+@keyframes flashIn {
+  0% { opacity: 0; transform: translateY(-6px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* ─── Leaderboard ────────────────────────────────────────────────────────── */
