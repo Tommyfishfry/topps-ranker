@@ -350,7 +350,7 @@ body {
 .vote-confirmed {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--teal);
@@ -358,13 +358,13 @@ body {
 }
 
 .vote-confirmed.flash {
-  animation: flashIn 0.8s ease;
+  animation: flashIn 1.4s ease;
 }
 
 @keyframes flashIn {
   0% { opacity: 0; transform: translateY(-6px); }
-  20% { opacity: 1; transform: translateY(0); }
-  80% { opacity: 1; }
+  15% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; }
   100% { opacity: 0; }
 }
 
