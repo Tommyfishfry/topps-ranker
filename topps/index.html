@@ -10,7 +10,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball">⚾</div>
+    <p>Loading matchup…</p>
+  </div>
+
   <div class="grain"></div>
+
   <header class="site-header">
     <div class="header-inner">
       <div class="logo">
@@ -28,49 +35,68 @@
       </nav>
     </div>
   </header>
-  <main class="main-content">
-    <section class="matchup-section">
-      <div class="matchup-prompt"><p class="prompt-label">Which Topps design is better?</p></div>
-      <div class="matchup-arena" id="matchupArena">
-        <div class="card" id="cardA" role="button" tabindex="0">
-          <div class="card-image-wrap">
-            <img class="card-image" id="imgA" src="" alt="" />
-            <div class="card-placeholder" id="placeholderA"></div>
+
+  <div class="vote-banner" id="voteBanner">
+    <span id="totalVotesDisplay">–</span> total votes cast by the community
+  </div>
+
+  <main class="page">
+    <div class="vote-headline">
+      <h1>Which Topps design is better?</h1>
+      <p class="site-blurb">Every Topps baseball card set from 1952–2026, ranked head-to-head by you. Click the design you prefer.</p>
+    </div>
+
+    <div class="matchup" id="matchup">
+      <!-- Card A -->
+      <div class="card-option" id="cardA" role="button" tabindex="0" aria-label="Vote for card A">
+        <div class="card-image" id="cardImageA">
+          <img id="imgA" src="" alt="" />
+          <div class="card-placeholder" id="placeholderA">
+            <span class="year-big" id="yearBigA"></span>
+            <span class="brand">Topps</span>
           </div>
-          <div class="card-info">
-            <span class="card-year" id="yearA">—</span>
-            <span class="card-era" id="eraA">—</span>
-          </div>
-          <div class="vote-overlay"><span class="vote-label">PICK THIS ONE</span></div>
         </div>
-        <div class="vs-badge">VS</div>
-        <div class="card" id="cardB" role="button" tabindex="0">
-          <div class="card-image-wrap">
-            <img class="card-image" id="imgB" src="" alt="" />
-            <div class="card-placeholder" id="placeholderB"></div>
-          </div>
-          <div class="card-info">
-            <span class="card-year" id="yearB">—</span>
-            <span class="card-era" id="eraB">—</span>
-          </div>
-          <div class="vote-overlay"><span class="vote-label">PICK THIS ONE</span></div>
+        <div class="card-info">
+          <span class="year-label" id="yearLabelA"></span>
+          <span class="desc" id="descA"></span>
         </div>
       </div>
-      <div class="matchup-actions"><button class="skip-btn" id="skipBtn">Skip this matchup →</button></div>
-    </section>
-    <section class="how-it-works">
-      <div class="hiw-inner">
-        <h2 class="hiw-title">How It Works</h2>
-        <p class="hiw-body">Every vote is a head-to-head matchup between two Topps card designs. We use an Elo rating system — the same math used in chess — to build a community-powered ranking of all 73 designs (1952–2026). Beating a higher-ranked design earns more points. All votes feed into one shared leaderboard.</p>
+
+      <div class="vs-divider">VS</div>
+
+      <!-- Card B -->
+      <div class="card-option" id="cardB" role="button" tabindex="0" aria-label="Vote for card B">
+        <div class="card-image" id="cardImageB">
+          <img id="imgB" src="" alt="" />
+          <div class="card-placeholder" id="placeholderB">
+            <span class="year-big" id="yearBigB"></span>
+            <span class="brand">Topps</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <span class="year-label" id="yearLabelB"></span>
+          <span class="desc" id="descB"></span>
+        </div>
       </div>
-    </section>
+    </div>
+
+    <button class="btn-next" id="btnSkip">Skip this matchup →</button>
+
+    <div class="vote-footer">
+      <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+      <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+    </div>
   </main>
+
   <footer class="site-footer">
     <p>A community ranking of Topps Baseball card designs · <a href="/">Popular Judgment</a></p>
   </footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
       authDomain: "topps-ranker.firebaseapp.com",
@@ -79,17 +105,217 @@
       messagingSenderId: "252611399751",
       appId: "1:252611399751:web:0441e77faa1e7786376162"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    window.__db = db;
-    window.__doc = doc;
-    window.__getDoc = getDoc;
-    window.__setDoc = setDoc;
-    window.__collection = collection;
-    window.__getDocs = getDocs;
-    window.dispatchEvent(new Event('firebase-ready'));
+
+    const CARDS = [
+      { year: 1952, description: "The original. Color painting on white, bold team name banner.", color: "#c8102e" },
+      { year: 1953, description: "Portrait painting style, pastel backgrounds.", color: "#1a3a6b" },
+      { year: 1954, description: "Two-photo design — action shot + portrait.", color: "#2d6a2d" },
+      { year: 1955, description: "Horizontal layout debut. Circle portrait over action.", color: "#8b4513" },
+      { year: 1956, description: "Horizontal, landscape photography, painted backgrounds.", color: "#4a4a8a" },
+      { year: 1957, description: "Clean white borders, sharp photography replaces paintings.", color: "#1a1a2e" },
+      { year: 1958, description: "Yellow name banner, yellow circle team name.", color: "#d4a017" },
+      { year: 1959, description: "Colorful pennant design, player name in pennant.", color: "#c8102e" },
+      { year: 1960, description: "Two-photo layout returns, baseball diamond motif.", color: "#2d6a2d" },
+      { year: 1961, description: "Shield/crest design with team colors.", color: "#1a3a6b" },
+      { year: 1962, description: "Wood grain border. Iconic Americana feel.", color: "#8b5e3c" },
+      { year: 1963, description: "Color-coded by team, pennant flag detail.", color: "#c8102e" },
+      { year: 1964, description: "Black and white inner frame, colorful outer.", color: "#1a1a1a" },
+      { year: 1965, description: "Pennant-shaped team name banner.", color: "#2d6a2d" },
+      { year: 1966, description: "Team color coded, angled text design.", color: "#4a4a8a" },
+      { year: 1967, description: "Clean vertical layout, color matched borders.", color: "#8b4513" },
+      { year: 1968, description: "Burlap/hatching texture background. Very distinctive.", color: "#5c4033" },
+      { year: 1969, description: "White team name in colored circle, clean design.", color: "#c8102e" },
+      { year: 1970, description: "Gray back, team color bold banner at top.", color: "#1a3a6b" },
+      { year: 1971, description: "Black border. One of the most iconic designs ever.", color: "#111111" },
+      { year: 1972, description: "Wild psychedelic comic-art borders. Very 70s.", color: "#e07b00" },
+      { year: 1973, description: "Two-tone color border, clean modern look.", color: "#2d6a2d" },
+      { year: 1974, description: "Large player name in team colors, minimal.", color: "#1a3a6b" },
+      { year: 1975, description: "Two-color striped border — the most colorful ever made.", color: "#ff4136" },
+      { year: 1976, description: "Bicentennial inspired, stars and stripes accents.", color: "#003087" },
+      { year: 1977, description: "Star-shaped portrait cutout, team color field.", color: "#c8102e" },
+      { year: 1978, description: "Yellow/white nameplate, clean photo presentation.", color: "#d4a017" },
+      { year: 1979, description: "Comic-book style team name burst.", color: "#ff6b35" },
+      { year: 1980, description: "Hat-shaped team logo bubble, gray borders.", color: "#4a4a8a" },
+      { year: 1981, description: "Clean white borders return, team color corner.", color: "#1a1a1a" },
+      { year: 1982, description: "Colorful diagonal stripe in corner.", color: "#2d6a2d" },
+      { year: 1983, description: "Bold team color border, classic portrait style.", color: "#c8102e" },
+      { year: 1984, description: "Black nameplate with team color accent.", color: "#111111" },
+      { year: 1985, description: "Colorful inner border, open white outer.", color: "#1a3a6b" },
+      { year: 1986, description: "Black border with team color vertical stripe.", color: "#1a1a1a" },
+      { year: 1987, description: "WOOD GRAIN BORDER. The most nostalgic design ever.", color: "#8b5e3c" },
+      { year: 1988, description: "Clean white, minimal team color accent.", color: "#1a3a6b" },
+      { year: 1989, description: "Gray graduated background, bold name.", color: "#4a4a4a" },
+      { year: 1990, description: "Gray grid pattern, bold team color stripe.", color: "#2d6a2d" },
+      { year: 1991, description: "Team color inner border, gold outer.", color: "#d4a017" },
+      { year: 1992, description: "Gold foil name/logo, clean photography.", color: "#c8a400" },
+      { year: 1993, description: "Colorful inner frame, black outer. Bold.", color: "#c8102e" },
+      { year: 2000, description: "Millennium edition, bold foil Topps logo.", color: "#d4a017" },
+      { year: 2006, description: "Clean, editorial full bleed photography.", color: "#4a4a4a" },
+      { year: 2008, description: "Team color coded borders, bold name.", color: "#2d6a2d" },
+      { year: 2011, description: "Diamond anniversary edition, elegant.", color: "#d4a017" },
+      { year: 2014, description: "Bold all-caps name, minimal design.", color: "#1a1a1a" },
+      { year: 2016, description: "Silver foil all-caps name, team color accent.", color: "#8a8a8a" },
+      { year: 2019, description: "150th anniversary of baseball on logo.", color: "#c8102e" },
+      { year: 2020, description: "Blue foil accents, clean photography.", color: "#003087" },
+      { year: 2021, description: "Silver foil, open white border design.", color: "#8a8a8a" },
+      { year: 2022, description: "Team color inner frame, bold typography.", color: "#1a1a1a" },
+      { year: 2023, description: "Clean modern design, bold name treatment.", color: "#c8102e" },
+      { year: 2024, description: "Contemporary full bleed with team color bar.", color: "#1a3a6b" },
+      { year: 2025, description: "2025 flagship design.", color: "#c8102e" },
+      { year: 2026, description: "2026 flagship design.", color: "#2d6a2d" },
+    ];
+
+    const HORIZONTAL_YEARS = [1955, 1956, 1960];
+    const ELO_K = 32;
+    const DEFAULT_ELO = 1500;
+
+    let cardAMeta, cardBMeta;
+    let voting = false;
+    let sessionVotes = 0;
+
+    function pickTwo(arr) {
+      const a = Math.floor(Math.random() * arr.length);
+      let b;
+      do { b = Math.floor(Math.random() * arr.length); } while (b === a);
+      return [arr[a], arr[b]];
+    }
+
+    function tryImage(year) {
+      return new Promise((resolve) => {
+        const variantSrc = `images/${year}a.jpg`;
+        const variant = new Image();
+        variant.onload = () => resolve(variantSrc);
+        variant.onerror = () => resolve(`images/${year}.jpg`);
+        variant.src = variantSrc;
+      });
+    }
+
+    function setCardUI(side, meta, imgSrc) {
+      const img = document.getElementById(`img${side}`);
+      const placeholder = document.getElementById(`placeholder${side}`);
+      const yearBig = document.getElementById(`yearBig${side}`);
+      const yearLabel = document.getElementById(`yearLabel${side}`);
+      const desc = document.getElementById(`desc${side}`);
+      const cardImage = document.getElementById(`cardImage${side}`);
+
+      cardImage.style.aspectRatio = HORIZONTAL_YEARS.includes(meta.year) ? '3.5 / 2.5' : '2.5 / 3.5';
+
+      img.src = imgSrc;
+      img.alt = `${meta.year} Topps card design`;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+      img.onerror = () => {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+        placeholder.style.background = meta.color;
+        yearBig.textContent = meta.year;
+      };
+
+      yearLabel.textContent = `${meta.year} Topps`;
+      desc.textContent = meta.description;
+
+      const card = document.getElementById(`card${side}`);
+      card.classList.remove('winner', 'loser');
+    }
+
+    async function loadMatchup() {
+      voting = false;
+      document.getElementById('loading').classList.remove('hidden');
+      [cardAMeta, cardBMeta] = pickTwo(CARDS);
+
+      const [imgA, imgB] = await Promise.all([
+        tryImage(cardAMeta.year),
+        tryImage(cardBMeta.year),
+      ]);
+
+      setCardUI('A', cardAMeta, imgA);
+      setCardUI('B', cardBMeta, imgB);
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
+
+    async function recordVote(winnerYear, loserYear) {
+      try {
+        const wRef = doc(db, 'cards', String(winnerYear));
+        const lRef = doc(db, 'cards', String(loserYear));
+        const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
+        const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+        const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+
+        const eW = eloExpected(wPrev.elo, lPrev.elo);
+        const eL = eloExpected(lPrev.elo, wPrev.elo);
+        const newW = Math.round(wPrev.elo + ELO_K * (1 - eW));
+        const newL = Math.round(lPrev.elo + ELO_K * (0 - eL));
+
+        await Promise.all([
+          setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winnerYear }),
+          setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: loserYear }),
+        ]);
+
+        // Update stats
+        const statsRef = doc(db, 'stats', 'global');
+        const statsSnap = await getDoc(statsRef);
+        const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
+        await setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
+        return prev.totalVotes + 1;
+      } catch(e) {
+        console.warn('Vote write failed:', e);
+        return null;
+      }
+    }
+
+    async function handleVote(winner) {
+      if (voting) return;
+      voting = true;
+
+      const loser = winner === 'A' ? 'B' : 'A';
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+
+      const winMeta = winner === 'A' ? cardAMeta : cardBMeta;
+      const losMeta = winner === 'A' ? cardBMeta : cardAMeta;
+
+      const newTotal = await recordVote(winMeta.year, losMeta.year);
+
+      sessionVotes++;
+      const streakEl = document.getElementById('voteStreak');
+      document.getElementById('streakCount').textContent = sessionVotes;
+      streakEl.style.display = 'block';
+
+      const confirmed = document.getElementById('voteConfirmed');
+      confirmed.style.display = 'block';
+      setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
+
+      if (newTotal !== null) {
+        document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
+        document.getElementById('stat-votes').textContent = newTotal.toLocaleString();
+      }
+
+      setTimeout(() => loadMatchup(), 900);
+    }
+
+    async function updateVoteCount() {
+      try {
+        const statsSnap = await getDoc(doc(db, 'stats', 'global'));
+        const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
+        document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
+        document.getElementById('stat-votes').textContent = total.toLocaleString();
+      } catch(e) {}
+    }
+
+    document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
+    document.getElementById('cardB').addEventListener('click', () => handleVote('B'));
+    document.getElementById('cardA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('A'); });
+    document.getElementById('cardB').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('B'); });
+    document.getElementById('btnSkip').addEventListener('click', loadMatchup);
+
+    loadMatchup();
+    updateVoteCount();
   </script>
-  <script src="cards.js"></script>
-  <script src="app.js"></script>
+
 </body>
 </html>
