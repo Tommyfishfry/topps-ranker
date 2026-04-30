@@ -4,39 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Topps Design Rankings — Popular Judgment</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <div class="loading-overlay" id="loading">
-    <div class="loading-ball">⚾</div>
+    <div class="loading-ball"></div>
     <p>Loading matchup…</p>
   </div>
 
-  <div class="grain"></div>
-
   <header class="site-header">
-    <div class="header-inner">
-      <div class="logo">
-        <a href="/" class="logo-home-link"><span class="logo-eyebrow">POPULAR JUDGMENT</span></a>
-        <span class="logo-top">TOPPS BASEBALL</span>
-        <span class="logo-sub">DESIGN RANKINGS</span>
-      </div>
-      <div class="header-stats">
-        <div class="stat"><span class="stat-num" id="stat-votes">—</span><span class="stat-label">Total Votes</span></div>
-        <div class="stat"><span class="stat-num" id="stat-cards">73</span><span class="stat-label">Designs</span></div>
-      </div>
-      <nav class="header-nav">
-        <a href="index.html" class="nav-link active">Vote</a>
-        <a href="leaderboard.html" class="nav-link">Rankings</a>
-      </nav>
-    </div>
+    <a href="/" class="logo">Popular <span>Judgment</span></a>
+    <nav>
+      <a href="index.html" class="active">Vote</a>
+      <a href="leaderboard.html" class="rankings-tab">The Rankings</a>
+    </nav>
   </header>
 
-  <div class="vote-banner" id="voteBanner">
+  <div class="vote-banner">
     <span id="totalVotesDisplay">–</span> total votes cast by the community
   </div>
 
@@ -48,7 +33,7 @@
 
     <div class="matchup" id="matchup">
       <!-- Card A -->
-      <div class="card-option" id="cardA" role="button" tabindex="0" aria-label="Vote for card A">
+      <div class="card-option" id="cardA" role="button" tabindex="0">
         <div class="card-image" id="cardImageA">
           <img id="imgA" src="" alt="" />
           <div class="card-placeholder" id="placeholderA">
@@ -65,7 +50,7 @@
       <div class="vs-divider">VS</div>
 
       <!-- Card B -->
-      <div class="card-option" id="cardB" role="button" tabindex="0" aria-label="Vote for card B">
+      <div class="card-option" id="cardB" role="button" tabindex="0">
         <div class="card-image" id="cardImageB">
           <img id="imgB" src="" alt="" />
           <div class="card-placeholder" id="placeholderB">
@@ -185,11 +170,10 @@
 
     function tryImage(year) {
       return new Promise((resolve) => {
-        const variantSrc = `images/${year}a.jpg`;
         const variant = new Image();
-        variant.onload = () => resolve(variantSrc);
+        variant.onload = () => resolve(`images/${year}a.jpg`);
         variant.onerror = () => resolve(`images/${year}.jpg`);
-        variant.src = variantSrc;
+        variant.src = `images/${year}a.jpg`;
       });
     }
 
@@ -202,9 +186,8 @@
       const cardImage = document.getElementById(`cardImage${side}`);
 
       cardImage.style.aspectRatio = HORIZONTAL_YEARS.includes(meta.year) ? '3.5 / 2.5' : '2.5 / 3.5';
-
       img.src = imgSrc;
-      img.alt = `${meta.year} Topps card design`;
+      img.alt = `${meta.year} Topps`;
       img.style.display = 'block';
       placeholder.style.display = 'none';
       img.onerror = () => {
@@ -216,21 +199,14 @@
 
       yearLabel.textContent = `${meta.year} Topps`;
       desc.textContent = meta.description;
-
-      const card = document.getElementById(`card${side}`);
-      card.classList.remove('winner', 'loser');
+      document.getElementById(`card${side}`).classList.remove('winner', 'loser');
     }
 
     async function loadMatchup() {
       voting = false;
       document.getElementById('loading').classList.remove('hidden');
       [cardAMeta, cardBMeta] = pickTwo(CARDS);
-
-      const [imgA, imgB] = await Promise.all([
-        tryImage(cardAMeta.year),
-        tryImage(cardBMeta.year),
-      ]);
-
+      const [imgA, imgB] = await Promise.all([tryImage(cardAMeta.year), tryImage(cardBMeta.year)]);
       setCardUI('A', cardAMeta, imgA);
       setCardUI('B', cardBMeta, imgB);
       document.getElementById('loading').classList.add('hidden');
@@ -245,18 +221,12 @@
         const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
         const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
         const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-
-        const eW = eloExpected(wPrev.elo, lPrev.elo);
-        const eL = eloExpected(lPrev.elo, wPrev.elo);
-        const newW = Math.round(wPrev.elo + ELO_K * (1 - eW));
-        const newL = Math.round(lPrev.elo + ELO_K * (0 - eL));
-
+        const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+        const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
         await Promise.all([
           setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winnerYear }),
           setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: loserYear }),
         ]);
-
-        // Update stats
         const statsRef = doc(db, 'stats', 'global');
         const statsSnap = await getDoc(statsRef);
         const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
@@ -271,30 +241,21 @@
     async function handleVote(winner) {
       if (voting) return;
       voting = true;
-
       const loser = winner === 'A' ? 'B' : 'A';
       document.getElementById(`card${winner}`).classList.add('winner');
       document.getElementById(`card${loser}`).classList.add('loser');
-
       const winMeta = winner === 'A' ? cardAMeta : cardBMeta;
       const losMeta = winner === 'A' ? cardBMeta : cardAMeta;
-
       const newTotal = await recordVote(winMeta.year, losMeta.year);
-
       sessionVotes++;
-      const streakEl = document.getElementById('voteStreak');
       document.getElementById('streakCount').textContent = sessionVotes;
-      streakEl.style.display = 'block';
-
+      document.getElementById('voteStreak').style.display = 'block';
       const confirmed = document.getElementById('voteConfirmed');
       confirmed.style.display = 'block';
       setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
-
       if (newTotal !== null) {
         document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
-        document.getElementById('stat-votes').textContent = newTotal.toLocaleString();
       }
-
       setTimeout(() => loadMatchup(), 900);
     }
 
@@ -303,7 +264,6 @@
         const statsSnap = await getDoc(doc(db, 'stats', 'global'));
         const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
         document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
-        document.getElementById('stat-votes').textContent = total.toLocaleString();
       } catch(e) {}
     }
 
