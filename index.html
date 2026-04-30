@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Popular Judgment — Community Rankings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream:   #f5f0e8;
+      --dark:    #1a1209;
+      --gold:    #c9a84c;
+      --ink:     #2c1a0e;
+      --border:  #d4c5a9;
+      --card-bg: #fdf8f0;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-cond:    'Barlow Condensed', sans-serif;
+      --font-body:    'Barlow', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+
+    .grain {
+      position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 256px;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--dark);
+      border-bottom: 3px solid var(--gold);
+      padding: 0 1.5rem;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      height: 80px;
+    }
+    .logo { display: flex; flex-direction: column; line-height: 1; }
+    .logo-top { font-family: var(--font-display); font-size: 2rem; color: #fff; letter-spacing: 0.05em; }
+    .logo-sub { font-family: var(--font-cond); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase; }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+      text-align: center;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: 0.03em;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+    .hero-title span { color: var(--gold); }
+    .hero-body {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #666;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Topic grid ── */
+    .topics {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .topic-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-decoration: none;
+      color: var(--ink);
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      border-color: var(--accent, var(--gold));
+    }
+
+    .topic-icon { font-size: 2.5rem; line-height: 1; }
+    .topic-label {
+      font-family: var(--font-cond);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent, var(--gold));
+    }
+    .topic-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+    }
+    .topic-desc {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #666;
+    }
+    .topic-cta {
+      margin-top: auto;
+      font-family: var(--font-cond);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent, var(--gold));
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    @media (max-width: 600px) {
+      .topics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-top">POPULAR JUDGMENT</span>
+        <span class="logo-sub">Community Rankings</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1 class="hero-title">The internet votes.<br><span>You decide.</span></h1>
+    <p class="hero-body">Head-to-head matchups, Elo ratings, and community-powered rankings on topics everyone has an opinion about.</p>
+  </section>
+
+  <div class="topics">
+
+    <a href="/topps/" class="topic-card" style="--accent: #c8102e;">
+      <div class="topic-icon">⚾</div>
+      <div class="topic-label">Baseball Cards</div>
+      <div class="topic-title">TOPPS DESIGNS</div>
+      <div class="topic-desc">73 years of Topps flagship card designs, ranked head-to-head by the community. Which era wins?</div>
+      <div class="topic-cta">Vote Now →</div>
+    </a>
+
+    <a href="/candy/" class="topic-card" style="--accent: #e8671a;">
+      <div class="topic-icon">🎃</div>
+      <div class="topic-label">Halloween Candy</div>
+      <div class="topic-title">TRICK OR TREAT</div>
+      <div class="topic-desc">50 Halloween candies ranked by the only poll that matters. Reese's vs. Candy Corn — settle it forever.</div>
+      <div class="topic-cta">Vote Now →</div>
+    </a>
+
+  </div>
+
+  <footer class="site-footer">
+    <p>Popular Judgment · Community-powered rankings</p>
+  </footer>
+
+</body>
+</html>
