@@ -10,27 +10,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <div class="grain"></div>
-
   <header class="site-header">
     <div class="header-inner">
       <div class="logo">
-        <a href="/" class="logo-home-link">
-          <span class="logo-eyebrow">POPULAR JUDGMENT</span>
-        </a>
+        <a href="/" class="logo-home-link"><span class="logo-eyebrow">POPULAR JUDGMENT</span></a>
         <span class="logo-top">TOPPS BASEBALL</span>
         <span class="logo-sub">DESIGN RANKINGS</span>
       </div>
       <div class="header-stats">
-        <div class="stat">
-          <span class="stat-num" id="stat-votes">—</span>
-          <span class="stat-label">Total Votes</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num" id="stat-cards">73</span>
-          <span class="stat-label">Designs</span>
-        </div>
+        <div class="stat"><span class="stat-num" id="stat-votes">—</span><span class="stat-label">Total Votes</span></div>
+        <div class="stat"><span class="stat-num" id="stat-cards">73</span><span class="stat-label">Designs</span></div>
       </div>
       <nav class="header-nav">
         <a href="index.html" class="nav-link active">Vote</a>
@@ -38,14 +28,9 @@
       </nav>
     </div>
   </header>
-
   <main class="main-content">
-
     <section class="matchup-section">
-      <div class="matchup-prompt">
-        <p class="prompt-label">Which Topps design is better?</p>
-      </div>
-
+      <div class="matchup-prompt"><p class="prompt-label">Which Topps design is better?</p></div>
       <div class="matchup-arena" id="matchupArena">
         <div class="card" id="cardA" role="button" tabindex="0">
           <div class="card-image-wrap">
@@ -56,13 +41,9 @@
             <span class="card-year" id="yearA">—</span>
             <span class="card-era" id="eraA">—</span>
           </div>
-          <div class="vote-overlay">
-            <span class="vote-label">PICK THIS ONE</span>
-          </div>
+          <div class="vote-overlay"><span class="vote-label">PICK THIS ONE</span></div>
         </div>
-
         <div class="vs-badge">VS</div>
-
         <div class="card" id="cardB" role="button" tabindex="0">
           <div class="card-image-wrap">
             <img class="card-image" id="imgB" src="" alt="" />
@@ -72,42 +53,24 @@
             <span class="card-year" id="yearB">—</span>
             <span class="card-era" id="eraB">—</span>
           </div>
-          <div class="vote-overlay">
-            <span class="vote-label">PICK THIS ONE</span>
-          </div>
+          <div class="vote-overlay"><span class="vote-label">PICK THIS ONE</span></div>
         </div>
       </div>
-
-      <div class="matchup-actions">
-        <button class="skip-btn" id="skipBtn">Skip this matchup →</button>
-      </div>
+      <div class="matchup-actions"><button class="skip-btn" id="skipBtn">Skip this matchup →</button></div>
     </section>
-
     <section class="how-it-works">
       <div class="hiw-inner">
         <h2 class="hiw-title">How It Works</h2>
-        <p class="hiw-body">
-          Every vote is a head-to-head matchup between two Topps card designs.
-          We use an Elo rating system — the same math used in chess — to build
-          a community-powered ranking of all 73 designs (1952–2026).
-          Beating a higher-ranked design earns more points. All votes from all visitors
-          feed into one shared leaderboard, so rankings improve in accuracy over time.
-          There are no accounts, no ads, just cards.
-        </p>
+        <p class="hiw-body">Every vote is a head-to-head matchup between two Topps card designs. We use an Elo rating system — the same math used in chess — to build a community-powered ranking of all 73 designs (1952–2026). Beating a higher-ranked design earns more points. All votes feed into one shared leaderboard.</p>
       </div>
     </section>
-
   </main>
-
   <footer class="site-footer">
     <p>A community ranking of Topps Baseball card designs · <a href="/">Popular Judgment</a></p>
   </footer>
-
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
       authDomain: "topps-ranker.firebaseapp.com",
@@ -116,22 +79,17 @@
       messagingSenderId: "252611399751",
       appId: "1:252611399751:web:0441e77faa1e7786376162"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window.__db = db;
     window.__doc = doc;
     window.__getDoc = getDoc;
     window.__setDoc = setDoc;
-    window.__onSnapshot = onSnapshot;
-    window.__runTransaction = runTransaction;
-
+    window.__collection = collection;
+    window.__getDocs = getDocs;
     window.dispatchEvent(new Event('firebase-ready'));
   </script>
-
   <script src="cards.js"></script>
   <script src="app.js"></script>
-
 </body>
 </html>

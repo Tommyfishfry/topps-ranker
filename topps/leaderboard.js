@@ -1,7 +1,5 @@
-// topps/leaderboard.js
+// topps/leaderboard.js — reads from cards collection to match existing Firebase structure
 
-const DB_COLLECTION = 'rankings';
-const DB_DOC = 'elo';
 const DEFAULT_ELO = 1500;
 
 const YEAR_COLORS = {
@@ -14,68 +12,72 @@ const YEAR_COLORS = {
   'Recent':      '#0d4f8b',
 };
 
-function render(data) {
-  const cards = window.TOPPS_CARDS.map(c => {
-    const d = data[c.year] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-    return { ...c, ...d };
-  });
+async function render() {
+  const db = window.__db;
 
-  cards.sort((a, b) => b.elo - a.elo);
+  try {
+    // Load all card data from cards collection
+    const snapshot = await window.__getDocs(window.__collection(db, 'cards'));
+    const firebaseData = {};
+    snapshot.forEach(d => { firebaseData[d.id] = d.data(); });
 
-  const totalVotes = data.__totalVotes ?? 0;
-  document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
+    // Load total votes from stats
+    const statsSnap = await window.__getDoc(window.__doc(db, 'stats', 'global'));
+    const totalVotes = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
+    document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
 
-  const rows = cards.map((card, i) => {
-    const rank = i + 1;
-    const rankClass = rank <= 3 ? `rank top${rank}` : 'rank';
-    const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-    const color = YEAR_COLORS[card.era] || '#555';
-    const winPct = card.comparisons > 0
-      ? Math.round((card.wins / card.comparisons) * 100)
-      : '—';
-    return `
-      <tr>
-        <td class="${rankClass}">${rankEmoji}</td>
-        <td class="year-cell">
-          <span class="year-swatch" style="background:${color}"></span>
-          ${card.year} Topps
-        </td>
-        <td class="era-cell">${card.era}</td>
-        <td class="elo-cell">${card.elo}</td>
-        <td class="record-cell">${card.wins}–${card.losses} (${winPct}%)</td>
-      </tr>
-    `;
-  }).join('');
+    // Merge with cards list
+    const cards = window.TOPPS_CARDS.map(c => {
+      const d = firebaseData[String(c.year)] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      return { ...c, ...d };
+    });
 
-  document.getElementById('tableContainer').innerHTML = `
-    <table class="rankings-table">
-      <thead>
+    cards.sort((a, b) => b.elo - a.elo);
+
+    const rows = cards.map((card, i) => {
+      const rank = i + 1;
+      const rankClass = rank <= 3 ? `rank top${rank}` : 'rank';
+      const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+      const color = YEAR_COLORS[card.era] || '#555';
+      const winPct = card.comparisons > 0 ? Math.round((card.wins / card.comparisons) * 100) : '—';
+      return `
         <tr>
-          <th>#</th>
-          <th>Design Year</th>
-          <th>Era</th>
-          <th class="right">Elo</th>
-          <th class="right">Win–Loss</th>
+          <td class="${rankClass}">${rankEmoji}</td>
+          <td class="year-cell"><span class="year-swatch" style="background:${color}"></span>${card.year} Topps</td>
+          <td class="era-cell">${card.era}</td>
+          <td class="elo-cell">${card.elo}</td>
+          <td class="record-cell">${card.wins}–${card.losses} (${winPct}%)</td>
         </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+      `;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <table class="rankings-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Design Year</th>
+            <th>Era</th>
+            <th class="right">Elo</th>
+            <th class="right">Win–Loss</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+  } catch (e) {
+    console.warn('Firebase load failed, rendering defaults:', e);
+    const cards = window.TOPPS_CARDS.map(c => ({ ...c, elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 }));
+    // render defaults...
+  }
 }
 
 window.addEventListener('firebase-ready', () => {
-  const db = window.__db;
-  const docRef = window.__doc(db, DB_COLLECTION, DB_DOC);
-
-  window.__onSnapshot(docRef, (snap) => {
-    const data = snap.exists() ? snap.data() : {};
-    render(data);
-  });
+  render();
 });
 
 setTimeout(() => {
   const container = document.getElementById('tableContainer');
-  if (container.querySelector('.loading-state')) {
-    render({});
-  }
+  if (container && container.querySelector('.loading-state')) render();
 }, 4000);

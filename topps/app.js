@@ -1,9 +1,7 @@
-// topps/app.js — Elo voting logic
+// topps/app.js — reads/writes cards collection to match existing Firebase structure
 
 const ELO_K = 32;
 const DEFAULT_ELO = 1500;
-const DB_COLLECTION = 'rankings';
-const DB_DOC = 'elo';
 
 const YEAR_COLORS = {
   'Golden Age':  '#c8102e',
@@ -19,7 +17,7 @@ let eloData = {};
 let totalVotes = 0;
 let currentA = null;
 let currentB = null;
-let db, docRef;
+let db;
 
 function expectedScore(rA, rB) {
   return 1 / (1 + Math.pow(10, (rB - rA) / 400));
@@ -68,22 +66,10 @@ function pickMatchup() {
     a = cards[Math.floor(Math.random() * cards.length)];
     b = cards[Math.floor(Math.random() * cards.length)];
   } while (a.year === b.year);
-
   currentA = a;
   currentB = b;
-
-  loadCardDisplay(a,
-    document.getElementById('imgA'),
-    document.getElementById('placeholderA'),
-    document.getElementById('yearA'),
-    document.getElementById('eraA')
-  );
-  loadCardDisplay(b,
-    document.getElementById('imgB'),
-    document.getElementById('placeholderB'),
-    document.getElementById('yearB'),
-    document.getElementById('eraB')
-  );
+  loadCardDisplay(a, document.getElementById('imgA'), document.getElementById('placeholderA'), document.getElementById('yearA'), document.getElementById('eraA'));
+  loadCardDisplay(b, document.getElementById('imgB'), document.getElementById('placeholderB'), document.getElementById('yearB'), document.getElementById('eraB'));
 }
 
 async function recordVote(winner) {
@@ -94,44 +80,32 @@ async function recordVote(winner) {
   const rL = eloData[loserCard.year]?.elo  ?? DEFAULT_ELO;
   const { newA: newW, newB: newL } = newRatings(rW, rL, 'A');
 
-  eloData[winnerCard.year] = {
-    elo:         newW,
-    wins:        (eloData[winnerCard.year]?.wins   ?? 0) + 1,
-    losses:      (eloData[winnerCard.year]?.losses ?? 0),
-    comparisons: (eloData[winnerCard.year]?.comparisons ?? 0) + 1,
-  };
-  eloData[loserCard.year] = {
-    elo:         newL,
-    wins:        (eloData[loserCard.year]?.wins   ?? 0),
-    losses:      (eloData[loserCard.year]?.losses ?? 0) + 1,
-    comparisons: (eloData[loserCard.year]?.comparisons ?? 0) + 1,
-  };
+  eloData[winnerCard.year] = { elo: newW, wins: (eloData[winnerCard.year]?.wins ?? 0) + 1, losses: (eloData[winnerCard.year]?.losses ?? 0), comparisons: (eloData[winnerCard.year]?.comparisons ?? 0) + 1, year: winnerCard.year };
+  eloData[loserCard.year]  = { elo: newL, wins: (eloData[loserCard.year]?.wins  ?? 0), losses: (eloData[loserCard.year]?.losses  ?? 0) + 1, comparisons: (eloData[loserCard.year]?.comparisons  ?? 0) + 1, year: loserCard.year };
 
   totalVotes++;
   document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
 
   const winCard = document.getElementById('card' + winner);
   winCard.classList.add('voted');
-  setTimeout(() => {
-    winCard.classList.remove('voted');
-    pickMatchup();
-  }, 350);
+  setTimeout(() => { winCard.classList.remove('voted'); pickMatchup(); }, 350);
 
-  if (db && docRef) {
+  if (db) {
     try {
-      await window.__runTransaction(db, async (tx) => {
-        const snap = await tx.get(docRef);
-        const data = snap.exists() ? snap.data() : {};
-        const wPrev = data[winnerCard.year] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const lPrev = data[loserCard.year]  ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const { newA: fw, newB: fl } = newRatings(wPrev.elo, lPrev.elo, 'A');
-        tx.set(docRef, {
-          ...data,
-          [winnerCard.year]: { elo: fw, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1 },
-          [loserCard.year]:  { elo: fl, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1 },
-          __totalVotes: (data.__totalVotes ?? 0) + 1,
-        });
-      });
+      const wRef = window.__doc(db, 'cards', String(winnerCard.year));
+      const lRef = window.__doc(db, 'cards', String(loserCard.year));
+      const wSnap = await window.__getDoc(wRef);
+      const lSnap = await window.__getDoc(lRef);
+      const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const { newA: fw, newB: fl } = newRatings(wPrev.elo, lPrev.elo, 'A');
+      await window.__setDoc(wRef, { elo: fw, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winnerCard.year });
+      await window.__setDoc(lRef, { elo: fl, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: loserCard.year });
+      // Update stats
+      const statsRef = window.__doc(db, 'stats', 'global');
+      const statsSnap = await window.__getDoc(statsRef);
+      const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
+      await window.__setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
     } catch (e) {
       console.warn('Firebase write failed:', e);
     }
@@ -147,24 +121,22 @@ function init() {
   pickMatchup();
 }
 
-window.addEventListener('firebase-ready', () => {
+window.addEventListener('firebase-ready', async () => {
   db = window.__db;
-  docRef = window.__doc(db, DB_COLLECTION, DB_DOC);
-
-  window.__onSnapshot(docRef, (snap) => {
-    if (snap.exists()) {
-      const data = snap.data();
-      totalVotes = data.__totalVotes ?? 0;
+  try {
+    // Load all existing card data from cards collection
+    const snapshot = await window.__getDocs(window.__collection(db, 'cards'));
+    snapshot.forEach(d => { eloData[d.id] = d.data(); });
+    // Load total votes
+    const statsSnap = await window.__getDoc(window.__doc(db, 'stats', 'global'));
+    if (statsSnap.exists()) {
+      totalVotes = statsSnap.data().totalVotes ?? 0;
       document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
-      window.TOPPS_CARDS.forEach(c => {
-        if (data[c.year]) eloData[c.year] = data[c.year];
-      });
     }
-  });
-
+  } catch (e) {
+    console.warn('Firebase load failed:', e);
+  }
   init();
 });
 
-setTimeout(() => {
-  if (!currentA) init();
-}, 3000);
+setTimeout(() => { if (!currentA) init(); }, 3000);
