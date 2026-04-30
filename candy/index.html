@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halloween Candy Rankings — Popular Judgment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <a href="https://popularjudgment.com" class="logo-home-link">
+          <span class="logo-eyebrow">POPULAR JUDGMENT</span>
+        </a>
+        <span class="logo-top">HALLOWEEN CANDY</span>
+        <span class="logo-sub">RANKINGS</span>
+      </div>
+      <div class="header-stats">
+        <div class="stat">
+          <span class="stat-num" id="stat-votes">—</span>
+          <span class="stat-label">Total Votes</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-candies">50</span>
+          <span class="stat-label">Candies</span>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link active">Vote</a>
+        <a href="leaderboard.html" class="nav-link">Rankings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <section class="matchup-section">
+      <div class="matchup-prompt">
+        <p class="prompt-label">Which candy would you rather get trick-or-treating?</p>
+      </div>
+
+      <div class="matchup-arena" id="matchupArena">
+        <div class="candy-card" id="cardA" role="button" tabindex="0">
+          <div class="candy-image-wrap">
+            <img class="candy-image" id="imgA" src="" alt="" />
+            <div class="candy-placeholder" id="placeholderA"></div>
+          </div>
+          <div class="candy-info">
+            <span class="candy-name" id="nameA">—</span>
+            <span class="candy-category" id="catA">—</span>
+          </div>
+          <div class="vote-overlay">
+            <span class="vote-label">PICK THIS ONE</span>
+          </div>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="candy-card" id="cardB" role="button" tabindex="0">
+          <div class="candy-image-wrap">
+            <img class="candy-image" id="imgB" src="" alt="" />
+            <div class="candy-placeholder" id="placeholderB"></div>
+          </div>
+          <div class="candy-info">
+            <span class="candy-name" id="nameB">—</span>
+            <span class="candy-category" id="catB">—</span>
+          </div>
+          <div class="vote-overlay">
+            <span class="vote-label">PICK THIS ONE</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="matchup-actions">
+        <button class="skip-btn" id="skipBtn">Skip this matchup →</button>
+      </div>
+    </section>
+
+    <section class="how-it-works">
+      <div class="hiw-inner">
+        <h2 class="hiw-title">How It Works</h2>
+        <p class="hiw-body">
+          Every vote is a head-to-head matchup. We use an Elo rating system — the same
+          math used in chess — to build a community-powered ranking of all 50 candies.
+          Beating a higher-ranked candy earns more points. All votes from all visitors
+          feed into one shared leaderboard, so rankings improve over time.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>A community ranking of Halloween candy · <a href="https://popularjudgment.com">Popular Judgment</a></p>
+  </footer>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ─────────────────────────────────────────────
+    // 🔧 PASTE YOUR FIREBASE CONFIG HERE
+    // ─────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
+      authDomain: "topps-ranker.firebaseapp.com",
+      projectId: "topps-ranker",
+      storageBucket: "topps-ranker.firebasestorage.app",
+      messagingSenderId: "252611399751",
+      appId: "1:252611399751:web:0441e77faa1e7786376162"
+    };
+    // ─────────────────────────────────────────────
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.__db = db;
+    window.__doc = doc;
+    window.__getDoc = getDoc;
+    window.__setDoc = setDoc;
+    window.__onSnapshot = onSnapshot;
+    window.__runTransaction = runTransaction;
+
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
+
+  <script src="candies.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
