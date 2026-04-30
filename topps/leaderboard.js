@@ -1,4 +1,4 @@
-// topps/leaderboard.js — reads from cards collection to match existing Firebase structure
+// topps/leaderboard.js — reads from cards collection, matches by number ID
 
 const DEFAULT_ELO = 1500;
 
@@ -16,19 +16,19 @@ async function render() {
   const db = window.__db;
 
   try {
-    // Load all card data from cards collection
     const snapshot = await window.__getDocs(window.__collection(db, 'cards'));
     const firebaseData = {};
-    snapshot.forEach(d => { firebaseData[d.id] = d.data(); });
+    snapshot.forEach(d => {
+      firebaseData[d.id] = d.data();
+      firebaseData[Number(d.id)] = d.data();
+    });
 
-    // Load total votes from stats
     const statsSnap = await window.__getDoc(window.__doc(db, 'stats', 'global'));
     const totalVotes = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
     document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
 
-    // Merge with cards list
     const cards = window.TOPPS_CARDS.map(c => {
-      const d = firebaseData[String(c.year)] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const d = firebaseData[c.year] ?? firebaseData[String(c.year)] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
       return { ...c, ...d };
     });
 
@@ -67,16 +67,12 @@ async function render() {
     `;
 
   } catch (e) {
-    console.warn('Firebase load failed, rendering defaults:', e);
-    const cards = window.TOPPS_CARDS.map(c => ({ ...c, elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 }));
-    // render defaults...
+    console.error('Firebase load failed:', e);
+    document.getElementById('tableContainer').innerHTML = '<p style="padding:2rem;text-align:center;color:#999">Could not load rankings.</p>';
   }
 }
 
-window.addEventListener('firebase-ready', () => {
-  render();
-});
-
+window.addEventListener('firebase-ready', () => { render(); });
 setTimeout(() => {
   const container = document.getElementById('tableContainer');
   if (container && container.querySelector('.loading-state')) render();
