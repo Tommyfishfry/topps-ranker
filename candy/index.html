@@ -4,111 +4,83 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Halloween Candy Rankings — Popular Judgment</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div class="grain"></div>
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball">🎃</div>
+    <p>Loading matchup…</p>
+  </div>
 
   <header class="site-header">
-    <div class="header-inner">
-      <div class="logo">
-        <a href="https://popularjudgment.com" class="logo-home-link">
-          <span class="logo-eyebrow">POPULAR JUDGMENT</span>
-        </a>
-        <span class="logo-top">HALLOWEEN CANDY</span>
-        <span class="logo-sub">RANKINGS</span>
-      </div>
-      <div class="header-stats">
-        <div class="stat">
-          <span class="stat-num" id="stat-votes">—</span>
-          <span class="stat-label">Total Votes</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num" id="stat-candies">50</span>
-          <span class="stat-label">Candies</span>
-        </div>
-      </div>
-      <nav class="header-nav">
-        <a href="index.html" class="nav-link active">Vote</a>
-        <a href="leaderboard.html" class="nav-link">Rankings</a>
-      </nav>
-    </div>
+    <a href="/" class="logo">Popular <span>Judgment</span></a>
+    <nav>
+      <a href="index.html" class="active">Vote</a>
+      <a href="leaderboard.html" class="rankings-tab">The Rankings</a>
+    </nav>
   </header>
 
-  <main class="main-content">
+  <div class="vote-banner">
+    <span id="totalVotesDisplay">–</span> total votes cast by the community
+  </div>
 
-    <section class="matchup-section">
-      <div class="matchup-prompt">
-        <p class="prompt-label">Which candy would you rather get trick-or-treating?</p>
-      </div>
+  <main class="page">
+    <div class="vote-headline">
+      <h1>Which candy would you rather get?</h1>
+      <p class="site-blurb">54 Halloween candies ranked head-to-head by you. Click the one you'd rather find in your trick-or-treat bag.</p>
+    </div>
 
-      <div class="matchup-arena" id="matchupArena">
-        <div class="candy-card" id="cardA" role="button" tabindex="0">
-          <div class="candy-image-wrap">
-            <img class="candy-image" id="imgA" src="" alt="" />
-            <div class="candy-placeholder" id="placeholderA"></div>
-          </div>
-          <div class="candy-info">
-            <span class="candy-name" id="nameA">—</span>
-            <span class="candy-category" id="catA">—</span>
-          </div>
-          <div class="vote-overlay">
-            <span class="vote-label">PICK THIS ONE</span>
+    <div class="matchup" id="matchup">
+      <!-- Card A -->
+      <div class="card-option" id="cardA" role="button" tabindex="0">
+        <div class="card-image" id="cardImageA">
+          <img id="imgA" src="" alt="" />
+          <div class="card-placeholder" id="placeholderA">
+            <span class="candy-name-big" id="nameBigA"></span>
           </div>
         </div>
-
-        <div class="vs-badge">VS</div>
-
-        <div class="candy-card" id="cardB" role="button" tabindex="0">
-          <div class="candy-image-wrap">
-            <img class="candy-image" id="imgB" src="" alt="" />
-            <div class="candy-placeholder" id="placeholderB"></div>
-          </div>
-          <div class="candy-info">
-            <span class="candy-name" id="nameB">—</span>
-            <span class="candy-category" id="catB">—</span>
-          </div>
-          <div class="vote-overlay">
-            <span class="vote-label">PICK THIS ONE</span>
-          </div>
+        <div class="card-info">
+          <span class="name-label" id="nameLabelA"></span>
+          <span class="category-label" id="catLabelA"></span>
         </div>
       </div>
 
-      <div class="matchup-actions">
-        <button class="skip-btn" id="skipBtn">Skip this matchup →</button>
-      </div>
-    </section>
+      <div class="vs-divider">VS</div>
 
-    <section class="how-it-works">
-      <div class="hiw-inner">
-        <h2 class="hiw-title">How It Works</h2>
-        <p class="hiw-body">
-          Every vote is a head-to-head matchup. We use an Elo rating system — the same
-          math used in chess — to build a community-powered ranking of all 50 candies.
-          Beating a higher-ranked candy earns more points. All votes from all visitors
-          feed into one shared leaderboard, so rankings improve over time.
-        </p>
+      <!-- Card B -->
+      <div class="card-option" id="cardB" role="button" tabindex="0">
+        <div class="card-image" id="cardImageB">
+          <img id="imgB" src="" alt="" />
+          <div class="card-placeholder" id="placeholderB">
+            <span class="candy-name-big" id="nameBigB"></span>
+          </div>
+        </div>
+        <div class="card-info">
+          <span class="name-label" id="nameLabelB"></span>
+          <span class="category-label" id="catLabelB"></span>
+        </div>
       </div>
-    </section>
+    </div>
 
+    <button class="btn-next" id="btnSkip">Skip this matchup →</button>
+
+    <div class="vote-footer">
+      <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+      <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <p>A community ranking of Halloween candy · <a href="https://popularjudgment.com">Popular Judgment</a></p>
+    <p>A community ranking of Halloween candy · <a href="/">Popular Judgment</a></p>
   </footer>
 
-  <!-- Firebase -->
+  <script src="candies.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ─────────────────────────────────────────────
-    // 🔧 PASTE YOUR FIREBASE CONFIG HERE
-    // ─────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
       authDomain: "topps-ranker.firebaseapp.com",
@@ -117,23 +89,122 @@
       messagingSenderId: "252611399751",
       appId: "1:252611399751:web:0441e77faa1e7786376162"
     };
-    // ─────────────────────────────────────────────
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    window.__db = db;
-    window.__doc = doc;
-    window.__getDoc = getDoc;
-    window.__setDoc = setDoc;
-    window.__onSnapshot = onSnapshot;
-    window.__runTransaction = runTransaction;
+    const CANDIES = window.CANDIES;
+    const ELO_K = 32;
+    const DEFAULT_ELO = 1500;
+    const DB_COLLECTION = 'candy';
+    const STATS_DOC = 'candy-stats';
 
-    window.dispatchEvent(new Event('firebase-ready'));
+    let candyAMeta, candyBMeta;
+    let voting = false;
+    let sessionVotes = 0;
+
+    function pickTwo(arr) {
+      const a = Math.floor(Math.random() * arr.length);
+      let b;
+      do { b = Math.floor(Math.random() * arr.length); } while (b === a);
+      return [arr[a], arr[b]];
+    }
+
+    function setCardUI(side, meta, imgSrc) {
+      const img = document.getElementById(`img${side}`);
+      const placeholder = document.getElementById(`placeholder${side}`);
+      const nameBig = document.getElementById(`nameBig${side}`);
+      const nameLabel = document.getElementById(`nameLabel${side}`);
+      const catLabel = document.getElementById(`catLabel${side}`);
+
+      img.src = imgSrc;
+      img.alt = meta.name;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+      img.onerror = () => {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+        nameBig.textContent = meta.name;
+      };
+
+      nameLabel.textContent = meta.name;
+      catLabel.textContent = meta.category;
+      document.getElementById(`card${side}`).classList.remove('winner', 'loser');
+    }
+
+    async function loadMatchup() {
+      voting = false;
+      document.getElementById('loading').classList.remove('hidden');
+      [candyAMeta, candyBMeta] = pickTwo(CANDIES);
+      setCardUI('A', candyAMeta, `images/${candyAMeta.id}.jpg`);
+      setCardUI('B', candyBMeta, `images/${candyBMeta.id}.jpg`);
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
+
+    async function recordVote(winnerId, loserId) {
+      try {
+        const wRef = doc(db, DB_COLLECTION, winnerId);
+        const lRef = doc(db, DB_COLLECTION, loserId);
+        const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
+        const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+        const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+        const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+        const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
+        await Promise.all([
+          setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, id: winnerId }),
+          setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, id: loserId }),
+        ]);
+        const statsRef = doc(db, 'stats', STATS_DOC);
+        const statsSnap = await getDoc(statsRef);
+        const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
+        await setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
+        return prev.totalVotes + 1;
+      } catch(e) {
+        console.warn('Vote write failed:', e);
+        return null;
+      }
+    }
+
+    async function handleVote(winner) {
+      if (voting) return;
+      voting = true;
+      const loser = winner === 'A' ? 'B' : 'A';
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+      const winMeta = winner === 'A' ? candyAMeta : candyBMeta;
+      const losMeta = winner === 'A' ? candyBMeta : candyAMeta;
+      const newTotal = await recordVote(winMeta.id, losMeta.id);
+      sessionVotes++;
+      document.getElementById('streakCount').textContent = sessionVotes;
+      document.getElementById('voteStreak').style.display = 'block';
+      const confirmed = document.getElementById('voteConfirmed');
+      confirmed.style.display = 'block';
+      setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
+      if (newTotal !== null) {
+        document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
+      }
+      setTimeout(() => loadMatchup(), 900);
+    }
+
+    async function updateVoteCount() {
+      try {
+        const statsSnap = await getDoc(doc(db, 'stats', STATS_DOC));
+        const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
+        document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
+      } catch(e) {}
+    }
+
+    document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
+    document.getElementById('cardB').addEventListener('click', () => handleVote('B'));
+    document.getElementById('cardA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('A'); });
+    document.getElementById('cardB').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('B'); });
+    document.getElementById('btnSkip').addEventListener('click', loadMatchup);
+
+    loadMatchup();
+    updateVoteCount();
   </script>
-
-  <script src="candies.js"></script>
-  <script src="app.js"></script>
 
 </body>
 </html>

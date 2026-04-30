@@ -1,12 +1,6 @@
-// candies.js
-// ─────────────────────────────────────────────────────────────────────────────
-// HALLOWEEN CANDY CATALOG
-// Each entry needs one image in /images/ named exactly as the id field.
+// candy/candies.js
+// Images go in candy/images/ named exactly as the id field + .jpg
 // Example: images/reeses-peanut-butter-cups.jpg
-//
-// Recommended image size: 400×400px square (product shot on white/transparent bg)
-// Good sources: manufacturer websites, Open Food Facts, Google Images
-// ─────────────────────────────────────────────────────────────────────────────
 
 window.CANDIES = [
 
@@ -23,12 +17,15 @@ window.CANDIES = [
   { id: 'almond-joy',                 name: 'Almond Joy',                   category: 'Chocolate' },
   { id: 'mounds',                     name: 'Mounds',                       category: 'Chocolate' },
   { id: 'mr-goodbar',                 name: 'Mr. Goodbar',                  category: 'Chocolate' },
+  { id: 'krackel',                    name: 'Krackel',                      category: 'Chocolate' },
   { id: '100-grand',                  name: '100 Grand',                    category: 'Chocolate' },
   { id: 'hersheys-bar',               name: "Hershey's Milk Chocolate Bar", category: 'Chocolate' },
   { id: 'hersheys-kisses',            name: "Hershey's Kisses",             category: 'Chocolate' },
   { id: 'york-peppermint-patty',      name: 'York Peppermint Patty',        category: 'Chocolate' },
   { id: 'whoppers',                   name: 'Whoppers',                     category: 'Chocolate' },
   { id: 'milk-duds',                  name: 'Milk Duds',                    category: 'Chocolate' },
+  { id: 'junior-mints',               name: 'Junior Mints',                 category: 'Chocolate' },
+  { id: 'payday',                     name: 'PayDay',                       category: 'Chocolate' },
 
   // ── FRUITY / CHEWY ─────────────────────────────────────────────────────────
   { id: 'starburst',                  name: 'Starburst',                    category: 'Fruity' },
@@ -41,6 +38,8 @@ window.CANDIES = [
   { id: 'jolly-ranchers',             name: 'Jolly Ranchers',               category: 'Fruity' },
   { id: 'now-and-later',              name: 'Now and Later',                category: 'Fruity' },
   { id: 'dots',                       name: 'Dots',                         category: 'Fruity' },
+  { id: 'warheads',                   name: 'Warheads',                     category: 'Fruity' },
+  { id: 'fun-dip',                    name: 'Fun Dip',                      category: 'Fruity' },
 
   // ── GUMMY ──────────────────────────────────────────────────────────────────
   { id: 'haribo-gold-bears',          name: 'Haribo Gold-Bears',            category: 'Gummy' },
@@ -51,9 +50,11 @@ window.CANDIES = [
   { id: 'nerds',                      name: 'Nerds',                        category: 'Candy' },
   { id: 'nerds-clusters',             name: 'Nerds Clusters',               category: 'Candy' },
 
-  // ── CHEWY / CARAMEL ────────────────────────────────────────────────────────
+  // ── CHEWY ──────────────────────────────────────────────────────────────────
   { id: 'tootsie-roll',               name: 'Tootsie Roll',                 category: 'Chewy' },
   { id: 'tootsie-pop',                name: 'Tootsie Pop',                  category: 'Chewy' },
+  { id: 'twizzlers',                  name: 'Twizzlers',                    category: 'Chewy' },
+  { id: 'red-vines',                  name: 'Red Vines',                    category: 'Chewy' },
 
   // ── HARD CANDY ─────────────────────────────────────────────────────────────
   { id: 'dum-dums',                   name: 'Dum Dums',                     category: 'Hard Candy' },
@@ -63,15 +64,13 @@ window.CANDIES = [
   { id: 'gobstopper',                 name: 'Gobstopper',                   category: 'Hard Candy' },
   { id: 'werthers',                   name: "Werther's Originals",          category: 'Hard Candy' },
 
-  // ── THE DEBATE STARTERS ────────────────────────────────────────────────────
+  // ── DIVISIVE ───────────────────────────────────────────────────────────────
   { id: 'candy-corn',                 name: 'Candy Corn',                   category: 'Divisive' },
   { id: 'peanut-butter-kisses',       name: 'Peanut Butter Kisses',         category: 'Divisive' },
   { id: 'circus-peanuts',             name: 'Circus Peanuts',               category: 'Divisive' },
   { id: 'necco-wafers',               name: 'Necco Wafers',                 category: 'Divisive' },
 
   // ── WILDCARD ───────────────────────────────────────────────────────────────
-  { id: 'twizzlers',                  name: 'Twizzlers',                    category: 'Chewy' },
-  { id: 'red-vines',                  name: 'Red Vines',                    category: 'Chewy' },
   { id: 'pop-rocks',                  name: 'Pop Rocks',                    category: 'Candy' },
   { id: 'pixie-stix',                 name: 'Pixie Stix',                   category: 'Candy' },
 
