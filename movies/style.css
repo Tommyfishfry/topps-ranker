@@ -62,7 +62,6 @@ body {
 .matchup { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem; max-width: 760px; margin-left: auto; margin-right: auto; }
 .vs-divider { font-family: var(--font-display); font-size: 2.5rem; font-weight: 900; color: var(--red); text-align: center; user-select: none; }
 
-/* Movie card — styled placeholder IS the card */
 .card-option {
   background: #fff;
   border: 3px solid var(--border);
@@ -78,61 +77,62 @@ body {
 .card-option.loser { opacity: 0.45; filter: grayscale(60%); transform: scale(0.97); transition: all 0.3s ease; }
 @keyframes cardWin { 0%{transform:translateY(-4px) scale(1.02)} 40%{transform:translateY(-10px) scale(1.04)} 100%{transform:translateY(-4px) scale(1.02)} }
 
+/* Compact color band — not a tall poster, just a bold header strip */
 .movie-card-visual {
   width: 100%;
-  aspect-ratio: 2 / 3;
+  padding: 1.25rem 1rem 1.1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
   position: relative;
   overflow: hidden;
+  min-height: 110px;
 }
 
 .movie-card-visual::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.2) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.18) 100%);
 }
 
 .movie-decade-label {
   font-family: var(--font-heading);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.7);
   position: relative;
   z-index: 1;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.4rem;
 }
 
 .movie-title-big {
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
   color: #fff;
   text-align: center;
   line-height: 1.2;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.45);
   position: relative;
   z-index: 1;
 }
 
 .movie-year-big {
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 400;
-  color: rgba(255,255,255,0.65);
-  margin-top: 0.5rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 0.3rem;
   position: relative;
   z-index: 1;
 }
 
 .card-info { padding: 0.85rem 1.1rem; border-top: 2px solid var(--cream-dark); background: #fff; }
 .card-info .title-label { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--ink); display: block; }
-.card-info .decade-label { font-family: var(--font-heading); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-top: 0.2rem; display: block; }
+.card-info .movie-desc { font-size: 0.82rem; color: var(--ink-light); margin-top: 0.2rem; opacity: 0.7; line-height: 1.4; display: block; }
 
 .btn-next { display: block; margin: 0 auto; background: transparent; border: 2px solid var(--ink-light); border-radius: 2px; padding: 0.65rem 2.5rem; font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-light); cursor: pointer; transition: all 0.15s; }
 .btn-next:hover { background: var(--ink); border-color: var(--ink); color: var(--cream); }

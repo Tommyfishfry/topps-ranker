@@ -40,7 +40,7 @@
         </div>
         <div class="card-info">
           <span class="title-label" id="titleLabelA"></span>
-          <span class="decade-label" id="decadeLabelA"></span>
+          <span class="movie-desc" id="descA"></span>
         </div>
       </div>
 
@@ -54,7 +54,7 @@
         </div>
         <div class="card-info">
           <span class="title-label" id="titleLabelB"></span>
-          <span class="decade-label" id="decadeLabelB"></span>
+          <span class="movie-desc" id="descB"></span>
         </div>
       </div>
     </div>
@@ -108,12 +108,11 @@
     function setCardUI(side, meta) {
       const visual = document.getElementById(`visual${side}`);
       visual.style.background = meta.color;
-
       document.getElementById(`decade${side}`).textContent = meta.decade;
       document.getElementById(`titleBig${side}`).textContent = meta.title;
       document.getElementById(`yearBig${side}`).textContent = meta.year;
       document.getElementById(`titleLabel${side}`).textContent = meta.title;
-      document.getElementById(`decadeLabel${side}`).textContent = `${meta.decade} · ${meta.year}`;
+      document.getElementById(`desc${side}`).textContent = meta.desc;
       document.getElementById(`card${side}`).classList.remove('winner', 'loser');
     }
 
