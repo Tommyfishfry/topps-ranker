@@ -80,7 +80,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
@@ -160,6 +160,8 @@
     let cardAMeta, cardBMeta;
     let voting = false;
     let sessionVotes = 0;
+    let totalVotes = 0;
+    const eloCache = {}; // local Elo cache — no Firebase reads needed on vote
 
     function pickTwo(arr) {
       const a = Math.floor(Math.random() * arr.length);
@@ -214,57 +216,69 @@
 
     function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
 
-    async function recordVote(winnerYear, loserYear) {
-      try {
-        const wRef = doc(db, 'cards', String(winnerYear));
-        const lRef = doc(db, 'cards', String(loserYear));
-        const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
-        const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
-        const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
-        await Promise.all([
-          setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winnerYear }),
-          setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: loserYear }),
-        ]);
-        const statsRef = doc(db, 'stats', 'global');
-        const statsSnap = await getDoc(statsRef);
-        const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
-        await setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
-        return prev.totalVotes + 1;
-      } catch(e) {
-        console.warn('Vote write failed:', e);
-        return null;
-      }
-    }
-
-    async function handleVote(winner) {
+    function handleVote(winner) {
       if (voting) return;
       voting = true;
+
       const loser = winner === 'A' ? 'B' : 'A';
-      document.getElementById(`card${winner}`).classList.add('winner');
-      document.getElementById(`card${loser}`).classList.add('loser');
       const winMeta = winner === 'A' ? cardAMeta : cardBMeta;
       const losMeta = winner === 'A' ? cardBMeta : cardAMeta;
-      const newTotal = await recordVote(winMeta.year, losMeta.year);
+
+      // ── 1. Update UI instantly ──────────────────────────────────────────────
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+
       sessionVotes++;
+      totalVotes++;
       document.getElementById('streakCount').textContent = sessionVotes;
       document.getElementById('voteStreak').style.display = 'block';
+      document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
       const confirmed = document.getElementById('voteConfirmed');
       confirmed.style.display = 'block';
       setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
-      if (newTotal !== null) {
-        document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
-      }
-      setTimeout(() => loadMatchup(), 900);
+
+      // ── 2. Calculate new Elo from local cache ───────────────────────────────
+      const wKey = String(winMeta.year);
+      const lKey = String(losMeta.year);
+      const wPrev = eloCache[wKey] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const lPrev = eloCache[lKey] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+      const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
+
+      // Update local cache immediately
+      eloCache[wKey] = { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winMeta.year };
+      eloCache[lKey] = { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: losMeta.year };
+
+      // ── 3. Load next matchup immediately ───────────────────────────────────
+      setTimeout(() => loadMatchup(), 600);
+
+      // ── 4. Write to Firebase in background ─────────────────────────────────
+      (async () => {
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db, 'cards', wKey), eloCache[wKey]);
+          batch.set(doc(db, 'cards', lKey), eloCache[lKey]);
+          batch.set(doc(db, 'stats', 'global'), { totalVotes });
+          await batch.commit();
+        } catch(e) {
+          console.warn('Firebase write failed:', e);
+        }
+      })();
     }
 
-    async function updateVoteCount() {
+    async function initVoteCount() {
       try {
+        // Load all Elo data into local cache once on startup
+        const snapshot = await getDocs(collection(db, 'cards'));
+        snapshot.forEach(d => { eloCache[d.id] = d.data(); });
         const statsSnap = await getDoc(doc(db, 'stats', 'global'));
-        const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
-        document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
-      } catch(e) {}
+        if (statsSnap.exists()) {
+          totalVotes = statsSnap.data().totalVotes ?? 0;
+          document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
+        }
+      } catch(e) {
+        console.warn('Firebase init failed:', e);
+      }
     }
 
     document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
@@ -274,7 +288,7 @@
     document.getElementById('btnSkip').addEventListener('click', loadMatchup);
 
     loadMatchup();
-    updateVoteCount();
+    initVoteCount();
   </script>
 
 </body>
