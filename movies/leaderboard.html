@@ -16,11 +16,10 @@
     .podium-card.rank-2 { border-color: #C0C0C0; box-shadow: 0 0 0 2px #C0C0C0, var(--card-shadow); }
     .podium-card.rank-3 { border-color: #CD7F32; box-shadow: 0 0 0 2px #CD7F32, var(--card-shadow); }
     .podium-medal { position: absolute; top: 8px; left: 8px; font-size: 1.4rem; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
-    .podium-visual { width: 100%; aspect-ratio: 2/3; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; position: relative; overflow: hidden; }
+    .podium-visual { width: 100%; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.25rem 1rem; position: relative; overflow: hidden; }
     .podium-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.2) 100%); }
-    .podium-decade-tag { font-family: var(--font-heading); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); position: relative; z-index: 1; margin-bottom: 0.5rem; }
     .podium-title { font-family: var(--font-display); font-size: 1rem; color: #fff; text-align: center; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.5); position: relative; z-index: 1; }
-    .podium-year { font-family: var(--font-heading); font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 0.3rem; position: relative; z-index: 1; }
+    .podium-year { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.85); margin-top: 0.35rem; position: relative; z-index: 1; letter-spacing: 0.08em; }
     .podium-info { padding: 0.75rem; border-top: 2px solid var(--cream-dark); }
     .podium-name { font-family: var(--font-display); font-size: 0.9rem; display: block; }
     .podium-rank-num { font-family: var(--font-display); font-size: 1.3rem; display: block; color: var(--ink); opacity: 0.4; margin-bottom: 0.1rem; }
@@ -159,7 +158,6 @@
                 <div class="podium-card ${rankClasses[i]}">
                   <div class="podium-medal">${medals[i]}</div>
                   <div class="podium-visual" style="background:${movie.color}">
-                    <span class="podium-decade-tag">${movie.decade}</span>
                     <span class="podium-title">${movie.title}</span>
                     <span class="podium-year">${movie.year}</span>
                   </div>
