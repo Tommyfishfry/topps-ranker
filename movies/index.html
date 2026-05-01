@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockbuster Rankings — Popular Judgment</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball"></div>
+    <p>Loading matchup…</p>
+  </div>
+
+  <header class="site-header">
+    <a href="/" class="logo">Popular <span>Judgment</span></a>
+    <nav>
+      <a href="index.html" class="active">Vote</a>
+      <a href="leaderboard.html" class="rankings-tab">The Rankings</a>
+    </nav>
+  </header>
+
+  <div class="vote-banner">
+    <span id="totalVotesDisplay">–</span> total votes cast by the community
+  </div>
+
+  <main class="page">
+    <div class="vote-headline">
+      <h1>Which movie is better?</h1>
+      <p class="site-blurb">66 blockbusters from the 1970s through today, ranked head-to-head by you. Click the one you'd put on the Mount Rushmore of cinema.</p>
+    </div>
+
+    <div class="matchup" id="matchup">
+      <div class="card-option" id="cardA" role="button" tabindex="0">
+        <div class="movie-card-visual" id="visualA">
+          <span class="movie-decade-label" id="decadeA"></span>
+          <span class="movie-title-big" id="titleBigA"></span>
+          <span class="movie-year-big" id="yearBigA"></span>
+        </div>
+        <div class="card-info">
+          <span class="title-label" id="titleLabelA"></span>
+          <span class="decade-label" id="decadeLabelA"></span>
+        </div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <div class="card-option" id="cardB" role="button" tabindex="0">
+        <div class="movie-card-visual" id="visualB">
+          <span class="movie-decade-label" id="decadeB"></span>
+          <span class="movie-title-big" id="titleBigB"></span>
+          <span class="movie-year-big" id="yearBigB"></span>
+        </div>
+        <div class="card-info">
+          <span class="title-label" id="titleLabelB"></span>
+          <span class="decade-label" id="decadeLabelB"></span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-next" id="btnSkip">Skip this matchup →</button>
+
+    <div class="vote-footer">
+      <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+      <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>A community ranking of blockbuster movies · <a href="/">Popular Judgment</a></p>
+  </footer>
+
+  <script src="movies.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
+      authDomain: "topps-ranker.firebaseapp.com",
+      projectId: "topps-ranker",
+      storageBucket: "topps-ranker.firebasestorage.app",
+      messagingSenderId: "252611399751",
+      appId: "1:252611399751:web:0441e77faa1e7786376162"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const MOVIES = window.MOVIES;
+    const ELO_K = 32;
+    const DEFAULT_ELO = 1500;
+    const STATS_DOC = 'movies-stats';
+
+    let movieAMeta, movieBMeta;
+    let voting = false;
+    let sessionVotes = 0;
+
+    function pickTwo(arr) {
+      const a = Math.floor(Math.random() * arr.length);
+      let b;
+      do { b = Math.floor(Math.random() * arr.length); } while (b === a);
+      return [arr[a], arr[b]];
+    }
+
+    function setCardUI(side, meta) {
+      const visual = document.getElementById(`visual${side}`);
+      visual.style.background = meta.color;
+
+      document.getElementById(`decade${side}`).textContent = meta.decade;
+      document.getElementById(`titleBig${side}`).textContent = meta.title;
+      document.getElementById(`yearBig${side}`).textContent = meta.year;
+      document.getElementById(`titleLabel${side}`).textContent = meta.title;
+      document.getElementById(`decadeLabel${side}`).textContent = `${meta.decade} · ${meta.year}`;
+      document.getElementById(`card${side}`).classList.remove('winner', 'loser');
+    }
+
+    function loadMatchup() {
+      voting = false;
+      [movieAMeta, movieBMeta] = pickTwo(MOVIES);
+      setCardUI('A', movieAMeta);
+      setCardUI('B', movieBMeta);
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
+
+    async function recordVote(winnerId, loserId) {
+      try {
+        const wRef = doc(db, 'movies', winnerId);
+        const lRef = doc(db, 'movies', loserId);
+        const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
+        const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+        const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+        const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+        const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
+        await Promise.all([
+          setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, id: winnerId }),
+          setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, id: loserId }),
+        ]);
+        const statsRef = doc(db, 'stats', STATS_DOC);
+        const statsSnap = await getDoc(statsRef);
+        const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
+        await setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
+        return prev.totalVotes + 1;
+      } catch(e) {
+        console.warn('Vote write failed:', e);
+        return null;
+      }
+    }
+
+    async function handleVote(winner) {
+      if (voting) return;
+      voting = true;
+      const loser = winner === 'A' ? 'B' : 'A';
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+      const winMeta = winner === 'A' ? movieAMeta : movieBMeta;
+      const losMeta = winner === 'A' ? movieBMeta : movieAMeta;
+      const newTotal = await recordVote(winMeta.id, losMeta.id);
+      sessionVotes++;
+      document.getElementById('streakCount').textContent = sessionVotes;
+      document.getElementById('voteStreak').style.display = 'block';
+      const confirmed = document.getElementById('voteConfirmed');
+      confirmed.style.display = 'block';
+      setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
+      if (newTotal !== null) {
+        document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
+      }
+      setTimeout(() => loadMatchup(), 900);
+    }
+
+    async function updateVoteCount() {
+      try {
+        const statsSnap = await getDoc(doc(db, 'stats', STATS_DOC));
+        const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
+        document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
+      } catch(e) {}
+    }
+
+    document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
+    document.getElementById('cardB').addEventListener('click', () => handleVote('B'));
+    document.getElementById('cardA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('A'); });
+    document.getElementById('cardB').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('B'); });
+    document.getElementById('btnSkip').addEventListener('click', loadMatchup);
+
+    loadMatchup();
+    updateVoteCount();
+  </script>
+
+</body>
+</html>
