@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pizza Toppings Rankings — Popular Judgment</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball"></div>
+    <p>Loading matchup…</p>
+  </div>
+
+  <header class="site-header">
+    <a href="/" class="logo">Popular <span>Judgment</span></a>
+    <nav>
+      <a href="index.html" class="active">Vote</a>
+      <a href="leaderboard.html" class="rankings-tab">The Rankings</a>
+    </nav>
+  </header>
+
+  <div class="vote-banner">
+    <span id="totalVotesDisplay">–</span> total votes cast by the community
+  </div>
+
+  <main class="page">
+    <div class="vote-headline">
+      <h1>Which belongs on a pizza?</h1>
+      <p class="site-blurb">45 sauces, toppings, and finishers ranked head-to-head by you. Click the one you'd rather have on your slice.</p>
+    </div>
+
+    <div class="matchup" id="matchup">
+      <div class="card-option" id="cardA" role="button" tabindex="0">
+        <div class="card-image" id="cardImageA">
+          <img id="imgA" src="" alt="" />
+          <div class="card-placeholder" id="placeholderA">
+            <span class="topping-name-big" id="nameBigA"></span>
+          </div>
+        </div>
+        <div class="card-info">
+          <span class="name-label" id="nameLabelA"></span>
+          <span class="category-label" id="catLabelA"></span>
+        </div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <div class="card-option" id="cardB" role="button" tabindex="0">
+        <div class="card-image" id="cardImageB">
+          <img id="imgB" src="" alt="" />
+          <div class="card-placeholder" id="placeholderB">
+            <span class="topping-name-big" id="nameBigB"></span>
+          </div>
+        </div>
+        <div class="card-info">
+          <span class="name-label" id="nameLabelB"></span>
+          <span class="category-label" id="catLabelB"></span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-next" id="btnSkip">Skip this matchup →</button>
+
+    <div class="vote-footer">
+      <p class="vote-count">Every vote updates the global leaderboard instantly</p>
+      <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>A community ranking of pizza toppings · <a href="/">Popular Judgment</a></p>
+  </footer>
+
+  <script src="pizza.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
+      authDomain: "topps-ranker.firebaseapp.com",
+      projectId: "topps-ranker",
+      storageBucket: "topps-ranker.firebasestorage.app",
+      messagingSenderId: "252611399751",
+      appId: "1:252611399751:web:0441e77faa1e7786376162"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const PIZZA = window.PIZZA;
+    const ELO_K = 32;
+    const DEFAULT_ELO = 1500;
+    const DB_COLLECTION = 'pizza';
+    const STATS_DOC = 'pizza-stats';
+
+    let itemAMeta, itemBMeta;
+    let voting = false;
+    let sessionVotes = 0;
+    let totalVotes = 0;
+    const eloCache = {};
+
+    function pickTwo(arr) {
+      const a = Math.floor(Math.random() * arr.length);
+      let b;
+      do { b = Math.floor(Math.random() * arr.length); } while (b === a);
+      return [arr[a], arr[b]];
+    }
+
+    function setCardUI(side, meta) {
+      const img = document.getElementById(`img${side}`);
+      const placeholder = document.getElementById(`placeholder${side}`);
+      const nameBig = document.getElementById(`nameBig${side}`);
+      const nameLabel = document.getElementById(`nameLabel${side}`);
+      const catLabel = document.getElementById(`catLabel${side}`);
+
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+      nameBig.textContent = meta.name;
+
+      const testImg = new Image();
+      testImg.onload = () => {
+        img.src = `images/${meta.id}.jpg`;
+        img.alt = meta.name;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+      };
+      testImg.onerror = () => {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+      };
+      testImg.src = `images/${meta.id}.jpg`;
+
+      nameLabel.textContent = meta.name;
+      catLabel.textContent = meta.category;
+      document.getElementById(`card${side}`).classList.remove('winner', 'loser');
+    }
+
+    function loadMatchup() {
+      voting = false;
+      [itemAMeta, itemBMeta] = pickTwo(PIZZA);
+      setCardUI('A', itemAMeta);
+      setCardUI('B', itemBMeta);
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
+
+    function handleVote(winner) {
+      if (voting) return;
+      voting = true;
+
+      const loser = winner === 'A' ? 'B' : 'A';
+      const winMeta = winner === 'A' ? itemAMeta : itemBMeta;
+      const losMeta = winner === 'A' ? itemBMeta : itemAMeta;
+
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+
+      sessionVotes++;
+      totalVotes++;
+      document.getElementById('streakCount').textContent = sessionVotes;
+      document.getElementById('voteStreak').style.display = 'block';
+      document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
+      const confirmed = document.getElementById('voteConfirmed');
+      confirmed.style.display = 'block';
+      setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
+
+      const wPrev = eloCache[winMeta.id] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const lPrev = eloCache[losMeta.id] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+      const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
+
+      eloCache[winMeta.id] = { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, id: winMeta.id };
+      eloCache[losMeta.id] = { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, id: losMeta.id };
+
+      setTimeout(() => loadMatchup(), 600);
+
+      (async () => {
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db, DB_COLLECTION, winMeta.id), eloCache[winMeta.id]);
+          batch.set(doc(db, DB_COLLECTION, losMeta.id), eloCache[losMeta.id]);
+          batch.set(doc(db, 'stats', STATS_DOC), { totalVotes });
+          await batch.commit();
+        } catch(e) {
+          console.warn('Firebase write failed:', e);
+        }
+      })();
+    }
+
+    async function initVoteCount() {
+      try {
+        const snapshot = await getDocs(collection(db, DB_COLLECTION));
+        snapshot.forEach(d => { eloCache[d.id] = d.data(); });
+        const statsSnap = await getDoc(doc(db, 'stats', STATS_DOC));
+        if (statsSnap.exists()) {
+          totalVotes = statsSnap.data().totalVotes ?? 0;
+          document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
+        }
+      } catch(e) {
+        console.warn('Firebase init failed:', e);
+      }
+    }
+
+    document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
+    document.getElementById('cardB').addEventListener('click', () => handleVote('B'));
+    document.getElementById('cardA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('A'); });
+    document.getElementById('cardB').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handleVote('B'); });
+    document.getElementById('btnSkip').addEventListener('click', loadMatchup);
+
+    loadMatchup();
+    initVoteCount();
+  </script>
+
+</body>
+</html>
