@@ -56,7 +56,7 @@ body {
 .card-option.loser { opacity: 0.45; filter: grayscale(60%); transform: scale(0.97); transition: all 0.3s ease; }
 @keyframes cardWin { 0%{transform:translateY(-4px) scale(1.02)} 40%{transform:translateY(-10px) scale(1.04)} 100%{transform:translateY(-4px) scale(1.02)} }
 
-.card-image { width: 100%; aspect-ratio: 1/1; background: var(--cream-dark); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.card-image { width: 100%; height: 180px; background: var(--cream-dark); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
 .card-option:hover .card-image img { transform: scale(1.03); }
 
