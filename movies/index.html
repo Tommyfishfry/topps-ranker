@@ -73,7 +73,7 @@
   <script src="movies.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
@@ -95,6 +95,8 @@
     let movieAMeta, movieBMeta;
     let voting = false;
     let sessionVotes = 0;
+    let totalVotes = 0;
+    const eloCache = {};
 
     function pickTwo(arr) {
       const a = Math.floor(Math.random() * arr.length);
@@ -123,57 +125,65 @@
 
     function eloExpected(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
 
-    async function recordVote(winnerId, loserId) {
-      try {
-        const wRef = doc(db, 'movies', winnerId);
-        const lRef = doc(db, 'movies', loserId);
-        const [wSnap, lSnap] = await Promise.all([getDoc(wRef), getDoc(lRef)]);
-        const wPrev = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const lPrev = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
-        const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
-        const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
-        await Promise.all([
-          setDoc(wRef, { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, id: winnerId }),
-          setDoc(lRef, { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, id: loserId }),
-        ]);
-        const statsRef = doc(db, 'stats', STATS_DOC);
-        const statsSnap = await getDoc(statsRef);
-        const prev = statsSnap.exists() ? statsSnap.data() : { totalVotes: 0 };
-        await setDoc(statsRef, { totalVotes: prev.totalVotes + 1 });
-        return prev.totalVotes + 1;
-      } catch(e) {
-        console.warn('Vote write failed:', e);
-        return null;
-      }
-    }
-
-    async function handleVote(winner) {
+    function handleVote(winner) {
       if (voting) return;
       voting = true;
+
       const loser = winner === 'A' ? 'B' : 'A';
-      document.getElementById(`card${winner}`).classList.add('winner');
-      document.getElementById(`card${loser}`).classList.add('loser');
       const winMeta = winner === 'A' ? movieAMeta : movieBMeta;
       const losMeta = winner === 'A' ? movieBMeta : movieAMeta;
-      const newTotal = await recordVote(winMeta.id, losMeta.id);
+
+      // ── 1. Update UI instantly ──────────────────────────────────────────────
+      document.getElementById(`card${winner}`).classList.add('winner');
+      document.getElementById(`card${loser}`).classList.add('loser');
+
       sessionVotes++;
+      totalVotes++;
       document.getElementById('streakCount').textContent = sessionVotes;
       document.getElementById('voteStreak').style.display = 'block';
+      document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
       const confirmed = document.getElementById('voteConfirmed');
       confirmed.style.display = 'block';
       setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
-      if (newTotal !== null) {
-        document.getElementById('totalVotesDisplay').textContent = newTotal.toLocaleString();
-      }
-      setTimeout(() => loadMatchup(), 900);
+
+      // ── 2. Calculate Elo from local cache ───────────────────────────────────
+      const wPrev = eloCache[winMeta.id] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const lPrev = eloCache[losMeta.id] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
+      const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
+
+      eloCache[winMeta.id] = { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, id: winMeta.id };
+      eloCache[losMeta.id] = { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, id: losMeta.id };
+
+      // ── 3. Load next matchup immediately ───────────────────────────────────
+      setTimeout(() => loadMatchup(), 600);
+
+      // ── 4. Write to Firebase in background ─────────────────────────────────
+      (async () => {
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db, 'movies', winMeta.id), eloCache[winMeta.id]);
+          batch.set(doc(db, 'movies', losMeta.id), eloCache[losMeta.id]);
+          batch.set(doc(db, 'stats', STATS_DOC), { totalVotes });
+          await batch.commit();
+        } catch(e) {
+          console.warn('Firebase write failed:', e);
+        }
+      })();
     }
 
-    async function updateVoteCount() {
+    async function initVoteCount() {
       try {
+        const snapshot = await getDocs(collection(db, 'movies'));
+        snapshot.forEach(d => { eloCache[d.id] = d.data(); });
         const statsSnap = await getDoc(doc(db, 'stats', STATS_DOC));
-        const total = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
-        document.getElementById('totalVotesDisplay').textContent = total.toLocaleString();
-      } catch(e) {}
+        if (statsSnap.exists()) {
+          totalVotes = statsSnap.data().totalVotes ?? 0;
+          document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
+        }
+      } catch(e) {
+        console.warn('Firebase init failed:', e);
+      }
     }
 
     document.getElementById('cardA').addEventListener('click', () => handleVote('A'));
@@ -183,7 +193,7 @@
     document.getElementById('btnSkip').addEventListener('click', loadMatchup);
 
     loadMatchup();
-    updateVoteCount();
+    initVoteCount();
   </script>
 
 </body>
