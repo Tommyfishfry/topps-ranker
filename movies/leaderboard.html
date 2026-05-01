@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rankings — Blockbuster Movies — Popular Judgment</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .lb-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 4px solid var(--ink); }
+    .lb-header h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; }
+    .lb-header .subhead { margin-top: 0.5rem; font-family: var(--font-heading); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); opacity: 0.55; }
+
+    .podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; }
+    .podium-card { background: #fff; border: 3px solid var(--border); border-radius: 4px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; position: relative; }
+    .podium-card.rank-1 { border-color: #FFD700; box-shadow: 0 0 0 3px #FFD700, var(--card-shadow); transform: translateY(-8px); }
+    .podium-card.rank-2 { border-color: #C0C0C0; box-shadow: 0 0 0 2px #C0C0C0, var(--card-shadow); }
+    .podium-card.rank-3 { border-color: #CD7F32; box-shadow: 0 0 0 2px #CD7F32, var(--card-shadow); }
+    .podium-medal { position: absolute; top: 8px; left: 8px; font-size: 1.4rem; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+    .podium-visual { width: 100%; aspect-ratio: 2/3; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; position: relative; overflow: hidden; }
+    .podium-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.2) 100%); }
+    .podium-decade-tag { font-family: var(--font-heading); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); position: relative; z-index: 1; margin-bottom: 0.5rem; }
+    .podium-title { font-family: var(--font-display); font-size: 1rem; color: #fff; text-align: center; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.5); position: relative; z-index: 1; }
+    .podium-year { font-family: var(--font-heading); font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 0.3rem; position: relative; z-index: 1; }
+    .podium-info { padding: 0.75rem; border-top: 2px solid var(--cream-dark); }
+    .podium-name { font-family: var(--font-display); font-size: 0.9rem; display: block; }
+    .podium-rank-num { font-family: var(--font-display); font-size: 1.3rem; display: block; color: var(--ink); opacity: 0.4; margin-bottom: 0.1rem; }
+    .podium-score { font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; color: var(--blue); display: block; margin-top: 0.15rem; }
+    .podium-record { font-family: var(--font-body); font-size: 0.75rem; color: var(--ink-light); opacity: 0.6; display: block; margin-top: 0.1rem; }
+
+    .rankings-table { width: 100%; border-collapse: collapse; background: #fff; border: 2px solid var(--border); border-radius: 4px; overflow: hidden; box-shadow: var(--card-shadow); }
+    .rankings-table thead { background: var(--ink); color: var(--cream); }
+    .rankings-table thead th { padding: 0.85rem 1rem; text-align: left; font-family: var(--font-heading); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .rankings-table thead th.right { text-align: right; }
+    .rankings-table thead th.center { text-align: center; }
+
+    .decade-70s { background: #fff5f5; }
+    .decade-80s { background: #f0f4ff; }
+    .decade-90s { background: #f5f0ff; }
+    .decade-00s { background: #f0fff4; }
+    .decade-10s { background: #f5f5f5; }
+    .decade-20s { background: #fffbf0; }
+
+    .rankings-table tbody tr { border-bottom: 1px solid var(--cream-dark); transition: filter 0.12s; }
+    .rankings-table tbody tr:last-child { border-bottom: none; }
+    .rankings-table tbody tr:hover { filter: brightness(0.96); }
+    .rankings-table td { padding: 0.6rem 1rem; font-size: 0.9rem; vertical-align: middle; }
+    .td-rank { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; text-align: center; color: var(--ink-light); opacity: 0.45; width: 40px; }
+    .td-swatch { width: 52px; padding: 0.3rem 0.5rem; }
+    .decade-swatch { width: 36px; height: 50px; border-radius: 2px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 0.55rem; font-weight: 700; color: #fff; text-align: center; padding: 2px; line-height: 1.2; }
+    .td-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+    .decade-badge { display: inline-block; font-family: var(--font-heading); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.1rem 0.4rem; border-radius: 2px; margin-left: 0.4rem; opacity: 0.6; background: rgba(0,0,0,0.08); color: var(--ink); vertical-align: middle; }
+    .year-badge { font-family: var(--font-heading); font-size: 0.75rem; color: var(--ink-light); opacity: 0.5; margin-left: 0.3rem; }
+    .low-votes { font-family: var(--font-heading); font-size: 0.65rem; background: var(--cream-dark); border: 1px solid var(--border); border-radius: 2px; padding: 0.1rem 0.35rem; color: var(--ink-light); opacity: 0.55; margin-left: 0.3rem; vertical-align: middle; }
+    .td-bar { width: 160px; }
+    .rating-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .rating-bar-bg { flex: 1; height: 8px; background: var(--cream-dark); border-radius: 4px; overflow: hidden; }
+    .rating-bar-fill { height: 100%; border-radius: 4px; background: var(--blue); }
+    .rating-number { font-family: var(--font-heading); font-weight: 700; font-size: 0.85rem; color: var(--blue); white-space: nowrap; min-width: 32px; text-align: right; }
+    .td-record { font-family: var(--font-heading); font-size: 0.82rem; text-align: right; color: var(--ink-light); opacity: 0.6; white-space: nowrap; }
+
+    .lb-cta { text-align: center; margin-top: 2rem; }
+    .vote-cta-btn { display: inline-block; background: var(--red); color: #fff; font-family: var(--font-heading); font-weight: 700; font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; padding: 0.85rem 2.5rem; border-radius: 3px; transition: background 0.15s; }
+    .vote-cta-btn:hover { background: var(--red-dark); }
+
+    @media (max-width: 700px) {
+      .podium { gap: 0.5rem; }
+      .td-bar { display: none; }
+      .decade-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="loading-ball"></div>
+    <p>Loading rankings…</p>
+  </div>
+
+  <header class="site-header">
+    <a href="/" class="logo">Popular <span>Judgment</span></a>
+    <nav>
+      <a href="index.html">Vote</a>
+      <a href="leaderboard.html" class="active rankings-tab">The Rankings</a>
+    </nav>
+  </header>
+
+  <div class="vote-banner">Community-powered rankings — updated after every vote</div>
+
+  <main class="page">
+    <div class="lb-header">
+      <h1>The Definitive Rankings</h1>
+      <p class="subhead" id="rankingSubhead">Loading…</p>
+    </div>
+    <div id="podiumContainer"></div>
+    <div id="tableContainer"></div>
+    <div class="lb-cta"><a href="index.html" class="vote-cta-btn">Cast Your Votes →</a></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>A community ranking of blockbuster movies · <a href="/">Popular Judgment</a></p>
+  </footer>
+
+  <script src="movies.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
+      authDomain: "topps-ranker.firebaseapp.com",
+      projectId: "topps-ranker",
+      storageBucket: "topps-ranker.firebasestorage.app",
+      messagingSenderId: "252611399751",
+      appId: "1:252611399751:web:0441e77faa1e7786376162"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const STATS_DOC = 'movies-stats';
+    const DEFAULT_ELO = 1500;
+
+    function getDecadeClass(decade) {
+      return 'decade-' + decade.replace('s', '').replace('19', '').replace('20', '') + 's';
+    }
+
+    function getDecadeClass2(decade) {
+      const map = { '1970s': 'decade-70s', '1980s': 'decade-80s', '1990s': 'decade-90s', '2000s': 'decade-00s', '2010s': 'decade-10s', '2020s': 'decade-20s' };
+      return map[decade] || '';
+    }
+
+    async function render() {
+      try {
+        const snapshot = await getDocs(collection(db, 'movies'));
+        const firebaseData = {};
+        snapshot.forEach(d => { firebaseData[d.id] = d.data(); });
+
+        const statsSnap = await getDoc(doc(db, 'stats', STATS_DOC));
+        const totalVotes = statsSnap.exists() ? (statsSnap.data().totalVotes ?? 0) : 0;
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('rankingSubhead').textContent =
+          `${totalVotes.toLocaleString()} votes cast — ${window.MOVIES.length} films ranked`;
+
+        const rankings = window.MOVIES.map(m => {
+          const d = firebaseData[m.id] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+          return { ...m, ...d };
+        }).sort((a, b) => b.elo - a.elo);
+
+        // Podium top 3
+        const medals = ['🥇','🥈','🥉'];
+        const rankLabels = ['#1','#2','#3'];
+        const rankClasses = ['rank-1','rank-2','rank-3'];
+        document.getElementById('podiumContainer').innerHTML = `
+          <div class="podium">
+            ${rankings.slice(0,3).map((movie, i) => {
+              const winPct = movie.comparisons > 0 ? Math.round((movie.wins/movie.comparisons)*100) : '—';
+              return `
+                <div class="podium-card ${rankClasses[i]}">
+                  <div class="podium-medal">${medals[i]}</div>
+                  <div class="podium-visual" style="background:${movie.color}">
+                    <span class="podium-decade-tag">${movie.decade}</span>
+                    <span class="podium-title">${movie.title}</span>
+                    <span class="podium-year">${movie.year}</span>
+                  </div>
+                  <div class="podium-info">
+                    <span class="podium-rank-num">${rankLabels[i]}</span>
+                    <span class="podium-name">${movie.title}</span>
+                    <span class="podium-score">${movie.elo} pts</span>
+                    <span class="podium-record">${movie.wins}W – ${movie.losses}L (${winPct}%)</span>
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>`;
+
+        // Table rows 4+
+        const maxElo = rankings[0].elo;
+        const minElo = rankings[rankings.length-1].elo;
+        const eloRange = maxElo - minElo || 1;
+
+        const rows = rankings.slice(3).map((movie, i) => {
+          const rank = i + 4;
+          const winPct = movie.comparisons > 0 ? Math.round((movie.wins/movie.comparisons)*100) : '—';
+          const barPct = Math.round(((movie.elo - minElo) / eloRange) * 100);
+          const lowVotes = movie.comparisons < 5 ? '<span class="low-votes">few votes</span>' : '';
+          return `
+            <tr class="${getDecadeClass2(movie.decade)}">
+              <td class="td-rank">${rank}</td>
+              <td class="td-swatch"><div class="decade-swatch" style="background:${movie.color}">${movie.decade}</div></td>
+              <td class="td-title">${movie.title}<span class="year-badge">${movie.year}</span>${lowVotes}</td>
+              <td class="td-bar">
+                <div class="rating-bar-wrap">
+                  <div class="rating-bar-bg"><div class="rating-bar-fill" style="width:${barPct}%"></div></div>
+                  <span class="rating-number">${movie.elo}</span>
+                </div>
+              </td>
+              <td class="td-record">${movie.wins}–${movie.losses} (${winPct}%)</td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('tableContainer').innerHTML = `
+          <table class="rankings-table">
+            <thead>
+              <tr>
+                <th class="center">#</th>
+                <th class="center">Era</th>
+                <th>Film</th>
+                <th>Rating</th>
+                <th class="right">Win–Loss</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+
+      } catch(e) {
+        console.error('Failed to load rankings:', e);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('tableContainer').innerHTML = '<p style="padding:2rem;text-align:center;color:#999">Could not load rankings.</p>';
+      }
+    }
+
+    render();
+  </script>
+
+</body>
+</html>
