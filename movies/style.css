@@ -122,12 +122,13 @@ body {
 
 .movie-year-big {
   font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
   margin-top: 0.3rem;
   position: relative;
   z-index: 1;
+  letter-spacing: 0.08em;
 }
 
 .card-info { padding: 0.85rem 1.1rem; border-top: 2px solid var(--cream-dark); background: #fff; }
