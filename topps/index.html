@@ -5,6 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Topps Design Rankings — Popular Judgment</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .vote-streak {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-top: 0.5rem;
+      animation: streakPop 0.3s ease;
+    }
+    @keyframes streakPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .vote-confirmed {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-top: 0.3rem;
+    }
+    .hot-take {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--red);
+      margin-top: 0.3rem;
+      animation: hotTakePop 0.4s ease;
+    }
+    @keyframes hotTakePop {
+      0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+      60% { transform: scale(1.2) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+  </style>
 </head>
 <body>
 
@@ -32,7 +70,6 @@
     </div>
 
     <div class="matchup" id="matchup">
-      <!-- Card A -->
       <div class="card-option" id="cardA" role="button" tabindex="0">
         <div class="card-image" id="cardImageA">
           <img id="imgA" src="" alt="" />
@@ -49,7 +86,6 @@
 
       <div class="vs-divider">VS</div>
 
-      <!-- Card B -->
       <div class="card-option" id="cardB" role="button" tabindex="0">
         <div class="card-image" id="cardImageB">
           <img id="imgB" src="" alt="" />
@@ -70,7 +106,7 @@
     <div class="vote-footer">
       <p class="vote-count">Every vote updates the global leaderboard instantly</p>
       <p class="vote-streak" id="voteStreak" style="display:none">🔥 <span id="streakCount">0</span> votes this session</p>
-      <p class="vote-confirmed" id="voteConfirmed" style="display:none">✓ Vote recorded!</p>
+      <p class="vote-confirmed" id="voteConfirmed" style="display:none"></p>
     </div>
   </main>
 
@@ -80,7 +116,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
@@ -137,12 +173,31 @@
       { year: 1991, description: "Team color inner border, gold outer.", color: "#d4a017" },
       { year: 1992, description: "Gold foil name/logo, clean photography.", color: "#c8a400" },
       { year: 1993, description: "Colorful inner frame, black outer. Bold.", color: "#c8102e" },
+      { year: 1994, description: "Full bleed photography, minimal borders.", color: "#1a1a1a" },
+      { year: 1995, description: "Colorful team-coded borders, clean typography.", color: "#4a4a8a" },
+      { year: 1996, description: "Foil stamping on name, clean modern look.", color: "#1a1a1a" },
+      { year: 1997, description: "Chrome-inspired design, metallic accents.", color: "#8a8a8a" },
+      { year: 1998, description: "Team color gradient borders, bold name.", color: "#1a3a6b" },
+      { year: 1999, description: "Millennium edition preview, clean design.", color: "#4a4a4a" },
       { year: 2000, description: "Millennium edition, bold foil Topps logo.", color: "#d4a017" },
+      { year: 2001, description: "Clean photography, team color accents.", color: "#c8102e" },
+      { year: 2002, description: "Bold name treatment, full bleed photos.", color: "#2d6a2d" },
+      { year: 2003, description: "Chrome influence, sharp modern design.", color: "#1a1a1a" },
+      { year: 2004, description: "Color-coded by team, clean white borders.", color: "#111111" },
+      { year: 2005, description: "Full bleed photography, foil name stamp.", color: "#1a3a6b" },
       { year: 2006, description: "Clean, editorial full bleed photography.", color: "#4a4a4a" },
+      { year: 2007, description: "Bold color borders, clean contemporary look.", color: "#c8102e" },
       { year: 2008, description: "Team color coded borders, bold name.", color: "#2d6a2d" },
+      { year: 2009, description: "Chrome-inspired, clean modern aesthetic.", color: "#1a1a1a" },
+      { year: 2010, description: "Bold design, team color accents throughout.", color: "#1a3a6b" },
       { year: 2011, description: "Diamond anniversary edition, elegant.", color: "#d4a017" },
+      { year: 2012, description: "Bold stripes, colorful team-coded design.", color: "#4a4a8a" },
+      { year: 2013, description: "Clean photography, modern minimal borders.", color: "#c8102e" },
       { year: 2014, description: "Bold all-caps name, minimal design.", color: "#1a1a1a" },
+      { year: 2015, description: "Colorful gradient borders, sharp photography.", color: "#2d6a2d" },
       { year: 2016, description: "Silver foil all-caps name, team color accent.", color: "#8a8a8a" },
+      { year: 2017, description: "Bold color splash design, modern typography.", color: "#4a4a8a" },
+      { year: 2018, description: "Clean minimal design, team color stripe.", color: "#1a3a6b" },
       { year: 2019, description: "150th anniversary of baseball on logo.", color: "#c8102e" },
       { year: 2020, description: "Blue foil accents, clean photography.", color: "#003087" },
       { year: 2021, description: "Silver foil, open white border design.", color: "#8a8a8a" },
@@ -153,15 +208,32 @@
       { year: 2026, description: "2026 flagship design.", color: "#2d6a2d" },
     ];
 
+    // ── How many image versions each year has ──────────────────────────────
+    // Default is 1 (just YEAR.jpg). Add entries here as you upload more.
+    // e.g. 1987: 4 means 1987.jpg, 1987b.jpg, 1987c.jpg, 1987d.jpg
+    const CARD_VERSIONS = {
+      1952: 4, 1953: 4, 1954: 4, 1955: 4, 1956: 4, 1957: 4, 1958: 4, 1959: 4,
+      1960: 4, 1961: 4, 1962: 4, 1963: 4, 1964: 4, 1965: 4, 1966: 4, 1967: 4,
+      1968: 4, 1969: 4, 1970: 4, 1971: 4, 1972: 4, 1973: 4, 1974: 4, 1975: 4,
+      1976: 4, 1977: 4, 1978: 4, 1979: 4, 1980: 4, 1981: 4, 1982: 4, 1983: 4,
+      1984: 4, 1985: 4, 1986: 4, 1987: 4, 1988: 4, 1989: 4, 1990: 4, 1991: 4,
+      1992: 4, 1993: 4, 1994: 4, 1995: 4, 1996: 4, 1997: 4, 1998: 4, 1999: 4,
+      2000: 4, 2001: 4, 2002: 4, 2003: 4, 2004: 4, 2005: 4, 2006: 4, 2007: 4,
+      2008: 4, 2009: 4, 2010: 4, 2011: 4, 2012: 4, 2013: 4, 2014: 4, 2015: 4,
+      2016: 4, 2017: 4, 2018: 4, 2019: 4, 2020: 4, 2021: 4, 2022: 4, 2023: 4,
+      2024: 4, 2025: 1, 2026: 1,
+    };
+
     const HORIZONTAL_YEARS = [1955, 1956, 1960];
     const ELO_K = 32;
     const DEFAULT_ELO = 1500;
+    const HOT_TAKE_THRESHOLD = 80; // Elo points difference to trigger Hot Take
 
     let cardAMeta, cardBMeta;
     let voting = false;
     let sessionVotes = 0;
     let totalVotes = 0;
-    const eloCache = {}; // local Elo cache — no Firebase reads needed on vote
+    const eloCache = {};
 
     function pickTwo(arr) {
       const a = Math.floor(Math.random() * arr.length);
@@ -170,12 +242,22 @@
       return [arr[a], arr[b]];
     }
 
+    // Pick a random image version for a year
+    function getRandomImageSrc(year) {
+      const versions = CARD_VERSIONS[year] ?? 1;
+      const pick = Math.floor(Math.random() * versions);
+      if (pick === 0) return `images/${year}.jpg`;
+      const suffix = ['b', 'c', 'd', 'e'][pick - 1];
+      return `images/${year}${suffix}.jpg`;
+    }
+
     function tryImage(year) {
       return new Promise((resolve) => {
-        const variant = new Image();
-        variant.onload = () => resolve(`images/${year}a.jpg`);
-        variant.onerror = () => resolve(`images/${year}.jpg`);
-        variant.src = `images/${year}a.jpg`;
+        const src = getRandomImageSrc(year);
+        const testImg = new Image();
+        testImg.onload = () => resolve(src);
+        testImg.onerror = () => resolve(`images/${year}.jpg`); // fallback to base
+        testImg.src = src;
       });
     }
 
@@ -224,7 +306,6 @@
       const winMeta = winner === 'A' ? cardAMeta : cardBMeta;
       const losMeta = winner === 'A' ? cardBMeta : cardAMeta;
 
-      // ── 1. Update UI instantly ──────────────────────────────────────────────
       document.getElementById(`card${winner}`).classList.add('winner');
       document.getElementById(`card${loser}`).classList.add('loser');
 
@@ -233,26 +314,35 @@
       document.getElementById('streakCount').textContent = sessionVotes;
       document.getElementById('voteStreak').style.display = 'block';
       document.getElementById('totalVotesDisplay').textContent = totalVotes.toLocaleString();
-      const confirmed = document.getElementById('voteConfirmed');
-      confirmed.style.display = 'block';
-      setTimeout(() => { confirmed.style.display = 'none'; }, 1400);
 
-      // ── 2. Calculate new Elo from local cache ───────────────────────────────
+      // ── Hot Take detection ──────────────────────────────────────────────
       const wKey = String(winMeta.year);
       const lKey = String(losMeta.year);
       const wPrev = eloCache[wKey] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
       const lPrev = eloCache[lKey] ?? { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+      const eloDiff = lPrev.elo - wPrev.elo; // positive = winner was ranked lower
+      const isHotTake = eloDiff >= HOT_TAKE_THRESHOLD;
+
+      const confirmed = document.getElementById('voteConfirmed');
+      if (isHotTake) {
+        confirmed.className = 'hot-take';
+        confirmed.textContent = '🔥 HOT TAKE!';
+      } else {
+        confirmed.className = 'vote-confirmed';
+        confirmed.textContent = '✓ Vote recorded!';
+      }
+      confirmed.style.display = 'block';
+      setTimeout(() => { confirmed.style.display = 'none'; }, 1600);
+
+      // ── Calculate new Elo ───────────────────────────────────────────────
       const newW = Math.round(wPrev.elo + ELO_K * (1 - eloExpected(wPrev.elo, lPrev.elo)));
       const newL = Math.round(lPrev.elo + ELO_K * (0 - eloExpected(lPrev.elo, wPrev.elo)));
 
-      // Update local cache immediately
       eloCache[wKey] = { elo: newW, wins: wPrev.wins + 1, losses: wPrev.losses,     comparisons: wPrev.comparisons + 1, year: winMeta.year };
       eloCache[lKey] = { elo: newL, wins: lPrev.wins,     losses: lPrev.losses + 1, comparisons: lPrev.comparisons + 1, year: losMeta.year };
 
-      // ── 3. Load next matchup immediately ───────────────────────────────────
-      setTimeout(() => loadMatchup(), 600);
+      setTimeout(() => loadMatchup(), 700);
 
-      // ── 4. Write to Firebase in background ─────────────────────────────────
       (async () => {
         try {
           const batch = writeBatch(db);
@@ -268,7 +358,6 @@
 
     async function initVoteCount() {
       try {
-        // Load all Elo data into local cache once on startup
         const snapshot = await getDocs(collection(db, 'cards'));
         snapshot.forEach(d => { eloCache[d.id] = d.data(); });
         const statsSnap = await getDoc(doc(db, 'stats', 'global'));
