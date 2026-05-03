@@ -119,7 +119,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
@@ -351,7 +351,7 @@
           const batch = writeBatch(db);
           batch.set(doc(db, 'cards', wKey), eloCache[wKey]);
           batch.set(doc(db, 'cards', lKey), eloCache[lKey]);
-          batch.set(doc(db, 'stats', 'global'), { totalVotes });
+          batch.set(doc(db, 'stats', 'global'), { totalVotes: increment(1) }, { merge: true });
           await batch.commit();
         } catch(e) {
           console.warn('Firebase write failed:', e);
