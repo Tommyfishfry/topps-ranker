@@ -1,12 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/topps", "destination": "/topps/index.html" },
-    { "source": "/candy", "destination": "/candy/index.html" },
-    { "source": "/movies", "destination": "/movies/index.html" },
-    { "source": "/pizza", "destination": "/pizza/index.html" },
-    { "source": "/topps/leaderboard", "destination": "/topps/leaderboard.html" },
-    { "source": "/candy/leaderboard", "destination": "/candy/leaderboard.html" },
-    { "source": "/movies/leaderboard", "destination": "/movies/leaderboard.html" },
-    { "source": "/pizza/leaderboard", "destination": "/pizza/leaderboard.html" }
-  ]
+  "trailingSlash": true
 }
