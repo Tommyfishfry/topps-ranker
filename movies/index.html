@@ -73,7 +73,7 @@
   <script src="movies.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfOu7bAIfIQ8bWEpsZTdeDv-8FT0qL7X4",
@@ -158,14 +158,21 @@
       // ── 3. Load next matchup immediately ───────────────────────────────────
       setTimeout(() => loadMatchup(), 600);
 
-      // ── 4. Write to Firebase in background ─────────────────────────────────
+      // ── 4. Write to Firebase safely using transaction ───────────────────────
       (async () => {
         try {
-          const batch = writeBatch(db);
-          batch.set(doc(db, 'movies', winMeta.id), eloCache[winMeta.id]);
-          batch.set(doc(db, 'movies', losMeta.id), eloCache[losMeta.id]);
-          batch.set(doc(db, 'stats', STATS_DOC), { totalVotes: increment(1) }, { merge: true });
-          await batch.commit();
+          await runTransaction(db, async (tx) => {
+            const wRef = doc(db, 'movies', winMeta.id);
+            const lRef = doc(db, 'movies', losMeta.id);
+            const [wSnap, lSnap] = await Promise.all([tx.get(wRef), tx.get(lRef)]);
+            const wCurrent = wSnap.exists() ? wSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+            const lCurrent = lSnap.exists() ? lSnap.data() : { elo: DEFAULT_ELO, wins: 0, losses: 0, comparisons: 0 };
+            const newWElo = Math.round(wCurrent.elo + ELO_K * (1 - eloExpected(wCurrent.elo, lCurrent.elo)));
+            const newLElo = Math.round(lCurrent.elo + ELO_K * (0 - eloExpected(lCurrent.elo, wCurrent.elo)));
+            tx.set(wRef, { elo: newWElo, wins: wCurrent.wins + 1, losses: wCurrent.losses, comparisons: wCurrent.comparisons + 1, id: winMeta.id });
+            tx.set(lRef, { elo: newLElo, wins: lCurrent.wins, losses: lCurrent.losses + 1, comparisons: lCurrent.comparisons + 1, id: losMeta.id });
+          });
+          await setDoc(doc(db, 'stats', STATS_DOC), { totalVotes: increment(1) }, { merge: true });
         } catch(e) {
           console.warn('Firebase write failed:', e);
         }
